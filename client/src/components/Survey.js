@@ -70,8 +70,30 @@ const SurveyForm = () => {
                         </Button>
                         <ul className="mt-2">
                             {options.map((opt, index) => (
-                                <li key={index}>{opt}</li>
-                            ))}
+                                <li onClick={
+                                    () => {
+                                        const newOptions = [...options];
+                                        newOptions.splice(index, 1);
+                                        setOptions(newOptions);
+                                    }
+                                } key={index} style={{ textDecoration: 'none' }}>
+                                    <span
+                                        style={{
+                                            textDecoration: 'none',
+                                            transition: 'text-decoration 0.3s ease',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.target.style.textDecoration = 'line-through';
+                                            e.target.style.cursor = 'pointer';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.textDecoration = 'none';
+                                            e.target.style.cursor = 'default';
+                                        }}
+                                    >
+                                        {opt}
+                                    </span>
+                                </li>))}
                         </ul>
                     </Form.Group>
                 )}

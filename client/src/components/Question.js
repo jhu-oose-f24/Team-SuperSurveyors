@@ -3,6 +3,7 @@ import React from 'react';
 import { Form } from 'react-bootstrap';
 
 const Question = ({ question }) => {
+
     return (
         <div className="mb-3">
             <p>{question.text}</p>
@@ -11,24 +12,30 @@ const Question = ({ question }) => {
             )}
             {question.type === 'radio' && (
                 <div>
-                    <Form.Check
-                        type="radio"
-                        label="Option 1"
-                        name={`question-${question.text}`}
-                        id={`option1-${question.text}`}
-                    />
-                    <Form.Check
-                        type="radio"
-                        label="Option 2"
-                        name={`question-${question.text}`}
-                        id={`option2-${question.text}`}
-                    />
+                    {question.options.map((option, index) =>
+                        <Form.Check
+                            key={index}
+                            type="radio"
+                            label={option}
+                            name="formHorizontalRadios"
+                            id={`formHorizontalRadios${index}`}
+                        />
+                    )
+                    }
                 </div>
             )}
             {question.type === 'checkbox' && (
                 <div>
-                    <Form.Check type="checkbox" label="Option 1" />
-                    <Form.Check type="checkbox" label="Option 2" />
+                    {question.options.map((option, index) =>
+                        <Form.Check
+                            key={index}
+                            type="checkbox"
+                            label={option}
+                            name="formHorizontalCheck"
+                            id={`formHorizontalCheck${index}`}
+                        />
+                    )
+                    }
                 </div>
             )}
         </div>

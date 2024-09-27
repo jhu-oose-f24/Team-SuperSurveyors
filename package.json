@@ -8,6 +8,7 @@
     "nodemon": "^3.1.7"
   },
   "scripts": {
-    "start": "concurrently \"npm run dev --prefix server\" \"npm start --prefix client\""
+    "start": "concurrently \"npm run dev --prefix server\" \"npm start --prefix client\"",
+    "frontend": "npm run start --prefix client"
   }
 }

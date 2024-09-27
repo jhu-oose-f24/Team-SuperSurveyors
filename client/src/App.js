@@ -1,25 +1,24 @@
 // frontend/src/App.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
+import SurveyForm from "./components/Survey";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import SurveyView from "./components/SurveyView";
+import NavBar from "./components/NavBar";
 const App = () => {
-  const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    // Fetch message from backend
-    axios.get("http://localhost:10000/")
-      .then(response => {
-        setMessage(response.data);
-      })
-      .catch(error => console.error(error));
-  }, []);
 
   return (
-    <div>
-      <h1>Survey Application</h1>
-      <p>{message}</p>
-    </div>
+    <Router>
+      <NavBar />
+      <Routes>
+        <Route path="/" element={<SurveyView />} />
+        <Route path="/create" element={<SurveyForm />} />
+      </Routes>
+    </Router>
   );
 };
+
+
 
 export default App;

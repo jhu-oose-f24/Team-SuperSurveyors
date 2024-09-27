@@ -84,6 +84,16 @@ const SurveyForm = () => {
                 {questions.map((q, index) => (
                     <ListGroup.Item key={index}>
                         <Question question={q} />
+                        <Button variant="danger" size="sm" className="mt-2"
+                            onClick={() => {
+                                const newQuestions = [...questions];
+                                newQuestions.splice(index, 1);
+                                setQuestions(newQuestions);
+                            }
+                            }
+                        >
+                            Remove Question
+                        </Button>
                     </ListGroup.Item>
                 ))}
             </ListGroup>

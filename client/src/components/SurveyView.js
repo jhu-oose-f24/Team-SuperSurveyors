@@ -1,63 +1,62 @@
 import React, { useState, useEffect } from 'react';
-import { ListGroup, Button } from 'react-bootstrap';
-import { collection, getDocs } from 'firebase/firestore';
+import { Card, Button, Container, Row, Col } from 'react-bootstrap';
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
-import DeleteConfirmationDialog from './deleteDialog';
 import Question from './Question';
 
 const SurveyView = () => {
-  const [surveys, setSurveys] = useState([]);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [surveyToDelete, setSurveyToDelete] = useState(null);
+    const [surveys, setSurveys] = useState([]);
 
-  useEffect(() => {
-    const fetchSurveys = async () => {
-      const querySnapshot = await getDocs(collection(db, 'surveys'));
-      const surveysData = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setSurveys(surveysData);
+    useEffect(() => {
+        const fetchSurveys = async () => {
+            const querySnapshot = await getDocs(collection(db, "surveys"));
+            const surveysData = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            setSurveys(surveysData);
+        };
+
+        fetchSurveys();
+    }, []);
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Are you sure you want to delete this survey?')) {
+            await deleteDoc(doc(db, 'surveys', id));
+            setSurveys(surveys.filter(survey => survey.id !== id));
+        }
     };
 
-    fetchSurveys();
-  }, []);
-
-  const handleDeleteClick = (survey) => {
-    setSurveyToDelete(survey);
-    setShowDeleteModal(true);
-  };
-
-  const handleSurveyDelete = (deletedSurveyId) => {
-    setSurveys(surveys.filter(survey => survey.id !== deletedSurveyId));
-  };
-
-  return (
-    <div className="container mt-4">
-      <h2>Your Surveys</h2>
-      <ListGroup className="mt-3">
-        {surveys.map((survey) => (
-          <ListGroup.Item key={survey.id}>
-            <h3>{survey.title}</h3>
-            {survey.questions.map((question, index) => (
-              <Question key={index} question={question} />
-            ))}
-            <Button variant="danger" onClick={() => handleDeleteClick(survey)}>
-              Delete
-            </Button>
-          </ListGroup.Item>
-        ))}
-      </ListGroup>
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
-        show={showDeleteModal}
-        onHide={() => setShowDeleteModal(false)}
-        survey={surveyToDelete}
-        onSurveyDelete={handleSurveyDelete}
-      />
-    </div>
-  );
+    return (
+        <Container className="mt-5">
+            <h2 className="text-center mb-4">Your Surveys</h2>
+            <Row className="g-4">
+                {surveys.map(survey => (
+                    <Col key={survey.id} md={6} lg={4}>
+                        <Card className="h-100 shadow-sm">
+                            <Card.Body>
+                                <Card.Title className="text-primary">{survey.title}</Card.Title>
+                                <Card.Text>
+                                    {survey.questions.map((question, index) => (
+                                        <Question key={index} question={question} />
+                                    ))}
+                                </Card.Text>
+                                <Button 
+                                    variant="danger" 
+                                    onClick={() => handleDelete(survey.id)}
+                                    className="mt-3 w-100"
+                                >
+                                    Delete Survey
+                                </Button>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                ))}
+            </Row>
+        </Container>
+    );
 };
 
 export default SurveyView;
+
+

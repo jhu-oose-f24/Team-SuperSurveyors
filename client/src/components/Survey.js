@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { Form, Button, ListGroup } from 'react-bootstrap';
 import Question from './Question';
+import { db } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 const SurveyForm = () => {
     const [questions, setQuestions] = useState([]);
@@ -9,6 +11,7 @@ const SurveyForm = () => {
     const [questionType, setQuestionType] = useState('text');
     const [options, setOptions] = useState([]); // State to store options
     const [newOption, setNewOption] = useState(''); // State for new option input
+
 
     const addOption = () => {
         if (newOption.trim()) {
@@ -25,15 +28,28 @@ const SurveyForm = () => {
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         // Call to a Firebase function to save the survey
-        console.log('Survey Submitted:', questions);
+        const survey = {
+            title: document.getElementById('surveyTitle').value,
+            questions,
+        };
+
+        await setDoc(doc(db, 'surveys', survey.title), survey);
+        // Go back to the home page
+        window.location.href = '/';
     };
 
     return (
         <div className="container mt-4">
             <h2>Create a Survey</h2>
             <Form>
+                <Form.Group className='mt-3' controlId="surveyTitle">
+                    <Form.Label>Survey Title</Form.Label>
+                    <Form.Control type="text" placeholder="Enter survey title" />
+                </Form.Group>
+
+
                 <Form.Group className='mt-3' controlId="questionText">
                     <Form.Label>Question</Form.Label>
                     <Form.Control

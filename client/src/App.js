@@ -1,6 +1,5 @@
 // frontend/src/App.js
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React from "react";
 import SurveyForm from "./components/Survey";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import SurveyView from "./components/SurveyView";

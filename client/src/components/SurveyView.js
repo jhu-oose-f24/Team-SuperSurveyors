@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ListGroup, Button } from 'react-bootstrap';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import Question from './Question';
 const SurveyView = () => {
@@ -19,6 +19,11 @@ const SurveyView = () => {
         fetchSurveys();
     }, []);
 
+    const handleDelete = async (id) => {
+        await deleteDoc(doc(db, 'surveys', id));
+        setSurveys(surveys.filter(survey => survey.id !== id));
+    };
+
     return (
         <div className="container mt-4">
             <h2>Your surveys</h2>
@@ -31,7 +36,7 @@ const SurveyView = () => {
                         {survey.questions.map((question, index) => (
                             <Question key={index} question={question} />
                         ))}
-                        <Button variant = "danger" >Delete</Button>
+                        <Button variant = "danger" onClick={() => handleDelete(survey.id)}>Delete</Button>
                     </ListGroup.Item>
                 ))}
                 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ListGroup } from 'react-bootstrap';
+import { ListGroup, Button } from 'react-bootstrap';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import Question from './Question';
@@ -31,8 +31,10 @@ const SurveyView = () => {
                         {survey.questions.map((question, index) => (
                             <Question key={index} question={question} />
                         ))}
+                        <Button variant = "danger" >Delete</Button>
                     </ListGroup.Item>
                 ))}
+                
             </ListGroup>
             <br />
         </div>

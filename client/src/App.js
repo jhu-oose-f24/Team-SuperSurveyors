@@ -13,6 +13,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<SurveyView />} />
         <Route path="/create" element={<SurveyForm />} />
+        <Route path="/user" element={<UserSettings />} />
       </Routes>
     </Router>
   );

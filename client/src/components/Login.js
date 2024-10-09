@@ -6,7 +6,9 @@ import { doc, setDoc } from 'firebase/firestore';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 const Login = () => {
-
+    return(<div>
+        
+    </div>);
 }
 
 export default Login;

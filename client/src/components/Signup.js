@@ -11,6 +11,12 @@ const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [showFailure, setShowFailure] = useState(false);
+    const [failureMsg, setFailureMsg] = useState("");
+  
+    const toggleShowSuccess = () => setShowSuccess(!showSuccess);
+    const toggleShowFailure = () => setShowFailure(!showFailure);
 
     const validatePassword = () => {
         if (password.length < 8) {
@@ -18,25 +24,28 @@ const Signup = () => {
         }
         return true;
     }
-    const handleSignUp = async () => {
+    const handleSignUp = async (e) => {
+        e.preventDefault();
         const auth = getAuth();
         if (!validatePassword()) {
-            console.log("password entered is too short");
+            setFailureMsg("password entered is too short");
+            toggleShowFailure();
+            return;
         }
         createUserWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
                 // Signed up 
                 const user = userCredential.user;
-                console.log("successfully created a user");
+                toggleShowSuccess();
                 navigate('/login');
             })
             .catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
-                console.log("error when creating user");
-                console.log(errorCode);
-                console.log(errorMessage);
+                setFailureMsg(errorMessage);
+                toggleShowSuccess();
             });
+        e.preventDefault();
 
     }
     return (
@@ -60,10 +69,17 @@ const Signup = () => {
                         Please enter a password at least 8 characters long
                     </Form.Text>
                 </Form.Group>
-                <Button variant="primary" type="submit" onClick={handleSignUp()}>
+                <Button variant="primary" type="submit" onClick={(e) => handleSignUp(e)}>
                     Submit
                 </Button>
             </Form>
+            <br/>
+            <Toast show={showSuccess} onClose={toggleShowSuccess}>
+                <Toast.Body>Successfully created an account for you!</Toast.Body>
+            </Toast>
+            <Toast show={showFailure} onClose={toggleShowFailure}>
+                <Toast.Body>{failureMsg}</Toast.Body>
+            </Toast>
         </div>
     );
 };

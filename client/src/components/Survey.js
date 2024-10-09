@@ -3,7 +3,10 @@ import React, { useState } from 'react';
 import { Form, Button, ListGroup } from 'react-bootstrap';
 import Question from './Question';
 import { db } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
+import '../services/userService';
+import { addSurveyToUser } from '../services/userService';
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 const SurveyForm = () => {
     const [questions, setQuestions] = useState([]);
@@ -29,13 +32,23 @@ const SurveyForm = () => {
     };
 
     const handleSubmit = async () => {
+        //uid
+
+
         // Call to a Firebase function to save the survey
         const survey = {
             title: document.getElementById('surveyTitle').value,
             questions,
         };
 
-        await setDoc(doc(db, 'surveys', survey.title), survey);
+        document.getElementById('surveyTitle').value = '';
+        // Add a new document with a generated id.
+
+        const docRef = await addDoc(collection(db, 'surveys'), survey);
+
+        //add doc id to users surveys
+        await addSurveyToUser(docRef.id);
+
         // Go back to the home page
         window.location.href = '/';
     };

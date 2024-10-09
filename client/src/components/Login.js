@@ -1,30 +1,57 @@
 import React, { useState } from 'react';
-import { Form, Button, ListGroup } from 'react-bootstrap';
-import Question from './Question';
-import { db } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import '../services/userService';
-
+import { Form, Button, Alert } from 'react-bootstrap';
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigate } from 'react-router-dom';
+//Write just use to test the user profile fetch function. Not do error handling.
 const Login = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError(null); // Clear previous errors
+        const auth = getAuth();
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            // Redirect to profile or home page after login
+            navigate('/profile'); 
+        } catch (err) {
+            setError('Failed to login. Please check your email and password.');
+        }
+    };
     return (
         <div className="container mt-4">
             <h2>Login</h2>
-            <Form>
+            {error && <Alert variant="danger">{error}</Alert>}
+            <Form onSubmit={handleLogin}>
                 <Form.Group className='mt-3' controlId="email">
                     <Form.Label>Email</Form.Label>
-                    <Form.Control type="email" placeholder="Enter email" />
+                    <Form.Control
+                        type="email"
+                        placeholder="Enter email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
                 </Form.Group>
                 <Form.Group className='mt-3' controlId="password">
                     <Form.Label>Password</Form.Label>
-                    <Form.Control type="password" placeholder="Password" />
+                    <Form.Control
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
                 </Form.Group>
-                <Button variant="primary" type="submit">
+                <Button className='mt-3' variant="primary" type="submit">
                     Login
                 </Button>
             </Form>
         </div>
     );
-}
+};
 
 export default Login;

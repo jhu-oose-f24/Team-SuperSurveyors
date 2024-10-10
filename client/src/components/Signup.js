@@ -6,6 +6,8 @@ import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import '../styles/signup.css';
 import Toast from 'react-bootstrap/Toast';
 import { useNavigate } from 'react-router-dom';
+import '../services/userService';
+import { registerUser } from '../services/userService';
 
 const Signup = () => {
     const [email, setEmail] = useState('');
@@ -14,7 +16,7 @@ const Signup = () => {
     const [showSuccess, setShowSuccess] = useState(false);
     const [showFailure, setShowFailure] = useState(false);
     const [failureMsg, setFailureMsg] = useState("");
-  
+
     const toggleShowSuccess = () => setShowSuccess(!showSuccess);
     const toggleShowFailure = () => setShowFailure(!showFailure);
 
@@ -26,9 +28,14 @@ const Signup = () => {
     }
     const handleSignUp = async (e) => {
         e.preventDefault();
-        const auth = getAuth();
-        if (!validatePassword()) {
-            setFailureMsg("password entered is too short");
+        await registerUser(email, password, email).then(() => {
+            toggleShowSuccess();
+            setTimeout(() => {
+                navigate('/');
+            }, 2000);
+        }
+        ).catch((error) => {
+            setFailureMsg(error.message);
             toggleShowFailure();
             return;
         }

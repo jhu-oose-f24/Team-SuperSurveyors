@@ -37,7 +37,6 @@ const Signup = () => {
                 // Signed up 
                 const user = userCredential.user;
                 toggleShowSuccess();
-                navigate('/login');
             })
             .catch((error) => {
                 const errorCode = error.code;
@@ -73,6 +72,7 @@ const Signup = () => {
                     Submit
                 </Button>
             </Form>
+            <Button variant="Link" onClick = {() => {navigate("/");}}>Back to Login</Button>
             <br/>
             <Toast show={showSuccess} onClose={toggleShowSuccess}>
                 <Toast.Body>Successfully created an account for you!</Toast.Body>

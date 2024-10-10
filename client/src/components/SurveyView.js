@@ -4,13 +4,16 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import Question from './Question';
 import DeleteConfirmationDialog from './deleteDialog.js'; // Import the DeleteDialog component
+import { useLocation } from 'react-router-dom';
 
 const SurveyView = () => {
     const [surveys, setSurveys] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showDialog, setShowDialog] = useState(false);
     const [selectedSurvey, setSelectedSurvey] = useState(null); // Holds the survey selected for deletion
-
+    const location = useLocation();
+    const state = location.state;
+    //uid is state.uid;
     // Fetch surveys from Firestore
     useEffect(() => {
         const fetchSurveys = async () => {

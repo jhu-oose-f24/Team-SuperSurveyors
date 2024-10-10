@@ -5,7 +5,6 @@ import SurveyView from "./components/SurveyView";
 import Signup from "./components/Signup";
 import Login from "./components/Login";
 import NavBar from "./components/NavBar";
-import Login from "./components/Login";
 import UserView from "./components/UserView"; // Import UserView component
 
 const App = () => {

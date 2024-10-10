@@ -13,6 +13,7 @@ const SurveyView = () => {
     const [selectedSurvey, setSelectedSurvey] = useState(null); // Holds the survey selected for deletion
     const location = useLocation();
     const state = location.state;
+    console.log(state);
     //uid is state.uid;
     // Fetch surveys from Firestore
     useEffect(() => {

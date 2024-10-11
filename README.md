@@ -6,7 +6,7 @@
 * Mia Jin (zhengyue4499)
 * Noah Park (noahpark101)
 * Xin Tan (tanx3036)
-* Evelynn Zhang (jiayizhang-evelynn)
+* Jiayi Zhang (jiayizhang-evelynn)
 
 ## Instructions
 `npm` is required to run this web app.

@@ -2,6 +2,8 @@
 import React from "react";
 import SurveyForm from "./components/Survey";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import PrivateRoute from "./routes/PrivateRoutes";
+import { AuthProvider } from "./context/AuthContext";
 import SurveyView from "./components/SurveyView";
 import Signup from "./components/Signup";
 import NavBar from "./components/NavBar";
@@ -11,17 +13,18 @@ const App = () => {
 
 
   return (
-    <Router>
-      <NavBar />
-      <Routes>
-        <Route path="/" element={<Signup />} />
-        <Route path="/view" element={<SurveyView />} />
-        <Route path="/create" element={<SurveyForm />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/login" element={<Login />} />
+    <AuthProvider >
+      <Router>
+        <NavBar />
+        <Routes>
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<PrivateRoute component={SurveyView} />} />
+          <Route path="/create" element={<PrivateRoute component={SurveyForm} />} />
 
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 };
 

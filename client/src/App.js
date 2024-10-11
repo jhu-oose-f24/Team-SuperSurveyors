@@ -1,4 +1,3 @@
-// React library imports
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
@@ -15,7 +14,7 @@ const App = () => {
         <Router>
             <NavBar />
             <Routes>
-                <Route path="/" element={<Login />} />
+                <Route path="/" element={<SurveyView />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/create" element={<SurveyForm />} />

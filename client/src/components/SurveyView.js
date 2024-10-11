@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Container, Row, Col } from 'react-bootstrap';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
 import Question from './Question';
 import DeleteConfirmationDialog from './DeleteDialog.js'; // Import the DeleteDialog component
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { getCurrentUser } from '../services/userService.js';
+import { getUserSurveys } from '../services/surveyService.js';
 
 const SurveyView = () => {
     const [surveys, setSurveys] = useState([]);
@@ -14,26 +14,26 @@ const SurveyView = () => {
     const location = useLocation();
     const state = location.state;
     console.log(state);
+
+    // Use navigate to redirect
+    const navigate = useNavigate();
+    
     //uid is state.uid;
+
     // Fetch surveys from Firestore
     useEffect(() => {
         const fetchSurveys = async () => {
-            try {
-                const querySnapshot = await getDocs(collection(db, "surveys"));
-                const surveysData = querySnapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setSurveys(surveysData);
-            } catch (error) {
-                console.error("Error fetching surveys:", error);
-            } finally {
-                setLoading(false);
-            }
+
+            // TODO: Fix
+            if (!getCurrentUser()) navigate('/login');
+
+            let surveysData = await getUserSurveys();
+            setSurveys(surveysData);
+            setLoading(false);
         };
 
         fetchSurveys();
-    }, []);
+    }, [navigate]);
 
     // Open the delete confirmation dialog
     const openDeleteDialog = (survey) => {

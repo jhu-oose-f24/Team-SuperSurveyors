@@ -1,7 +1,6 @@
-// src/services/userService.js
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc, addDoc, arrayUnion, updateDoc } from 'firebase/firestore';
-import User from '../models/User'; // Assuming you have a User class in models/
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signOut } from 'firebase/auth';
+import { getFirestore, doc, setDoc, getDoc, arrayUnion, updateDoc } from 'firebase/firestore';
+import User from '../models/User';
 
 const auth = getAuth();
 const db = getFirestore();
@@ -68,6 +67,16 @@ export const updateUserProfile = async (uid, displayName, photoURL) => {
     } catch (error) {
         console.error('Error updating profile: ', error);
         throw error;
+    }
+};
+
+// Log the user out
+export const logoutUser = async () => {
+    const auth = getAuth();
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error('Error logging out:', error);
     }
 };
 

@@ -6,6 +6,7 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import '../styles/signup.css';
 import Toast from 'react-bootstrap/Toast';
 import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../services/userService';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -14,7 +15,8 @@ const Login = () => {
     const [showSuccess, setShowSuccess] = useState(false);
     const [showFailure, setShowFailure] = useState(false);
     const [failureMsg, setFailureMsg] = useState("");
-  
+
+
     const toggleShowSuccess = () => setShowSuccess(!showSuccess);
     const toggleShowFailure = () => setShowFailure(!showFailure);
 
@@ -32,22 +34,18 @@ const Login = () => {
             toggleShowFailure();
             return;
         }
-        signInWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                // Signed up 
-                let user = userCredential.user;
-                toggleShowSuccess();
-                navigate("/view", {state :{
-                    uid: user.uid,
-                    }
-                });
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                setFailureMsg(errorMessage);
-                toggleShowSuccess();
-            });
+        await loginUser(email, password).then(() => {
+            toggleShowSuccess();
+            setTimeout(() => {
+                navigate('/');
+            }, 2000);
+        }
+        ).catch((error) => {
+            setFailureMsg(error.message);
+            toggleShowFailure();
+            return;
+        });
+
         e.preventDefault();
 
     }
@@ -70,8 +68,8 @@ const Login = () => {
                     Submit
                 </Button>
             </Form>
-            <Button variant="Link" onClick = {() => {navigate("/signup");}}>Sign up</Button>
-            <br/>
+            <Button variant="Link" onClick={() => { navigate("/signup"); }}>Sign up</Button>
+            <br />
             <Toast show={showSuccess} onClose={toggleShowSuccess}>
                 <Toast.Body>Successfully signed in!</Toast.Body>
             </Toast>

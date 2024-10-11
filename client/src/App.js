@@ -1,6 +1,7 @@
 // frontend/src/App.js
 import React from "react";
 import SurveyForm from "./components/Survey";
+import UserSettings from "./components/UserSettings";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import SurveyView from "./components/SurveyView";
 import NavBar from "./components/NavBar";

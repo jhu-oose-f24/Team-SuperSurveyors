@@ -37,9 +37,8 @@ const Signup = () => {
         ).catch((error) => {
             setFailureMsg(error.message);
             toggleShowFailure();
+            return;
         });
-
-
         e.preventDefault();
 
     }
@@ -68,7 +67,8 @@ const Signup = () => {
                     Submit
                 </Button>
             </Form>
-            <br />
+            <Button variant="Link" onClick = {() => {navigate("/");}}>Back to Login</Button>
+            <br/>
             <Toast show={showSuccess} onClose={toggleShowSuccess}>
                 <Toast.Body>Successfully created an account for you!</Toast.Body>
             </Toast>

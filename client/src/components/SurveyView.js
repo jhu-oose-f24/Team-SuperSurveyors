@@ -3,7 +3,7 @@ import { Card, Button, Container, Row, Col } from 'react-bootstrap';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import Question from './Question';
-import DeleteConfirmationDialog from './deleteDialog.js'; // Import the DeleteDialog component
+import DeleteConfirmationDialog from './DeleteDialog.js'; // Import the DeleteDialog component
 import { useLocation } from 'react-router-dom';
 
 const SurveyView = () => {

@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { Form, Button, ListGroup } from 'react-bootstrap';
-import { db } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import '../styles/signup.css';
+import { Form, Button } from 'react-bootstrap';
 import Toast from 'react-bootstrap/Toast';
 import { useNavigate } from 'react-router-dom';
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import '../styles/signup.css';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const navigate = useNavigate();
     const [showSuccess, setShowSuccess] = useState(false);
     const [showFailure, setShowFailure] = useState(false);
     const [failureMsg, setFailureMsg] = useState("");
+    const navigate = useNavigate();
   
     const toggleShowSuccess = () => setShowSuccess(!showSuccess);
     const toggleShowFailure = () => setShowFailure(!showFailure);
@@ -24,6 +24,7 @@ const Login = () => {
         }
         return true;
     }
+    
     const handleSignUp = async (e) => {
         e.preventDefault();
         const auth = getAuth();

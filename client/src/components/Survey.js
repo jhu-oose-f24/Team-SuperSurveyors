@@ -33,6 +33,7 @@ const SurveyForm = () => {
         const newQuestions = [...questions];
         newQuestions[index].answer = value;
         setQuestions(newQuestions);
+
     };
 
     const handleSubmit = async () => {

@@ -65,7 +65,7 @@ const SurveyView = () => {
                                         <Card.Title className="text-primary">{survey.title}</Card.Title>
                                         <Card.Text>
                                             {survey.questions.map((question, index) => (
-                                                <Question key={index} question={question} />
+                                                <Question key={index} question={question} readOnly={true} />
                                             ))}
                                         </Card.Text>
                                         <Button 

@@ -22,10 +22,17 @@ const SurveyForm = () => {
 
     const addQuestion = () => {
         if (questionText.trim()) {
-            setQuestions([...questions, { text: questionText, type: questionType, options }]);
+            setQuestions([...questions, { text: questionText, type: questionType, options, answer: '' }]);
             setQuestionText('');
             setOptions([]); // Reset options input
         }
+    };
+
+    const handleAnswerChange = (index, value) => {
+        //update answer
+        const newQuestions = [...questions];
+        newQuestions[index].answer = value;
+        setQuestions(newQuestions);
     };
 
     const handleSubmit = async () => {
@@ -121,7 +128,7 @@ const SurveyForm = () => {
             <ListGroup className="mt-3">
                 {questions.map((q, index) => (
                     <ListGroup.Item key={index}>
-                        <Question question={q} />
+                        <Question question={q} index={index} onAnswerChange={handleAnswerChange} />
                         <Button variant="danger" size="sm" className="mt-2"
                             onClick={() => {
                                 const newQuestions = [...questions];

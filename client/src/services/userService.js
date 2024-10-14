@@ -1,9 +1,10 @@
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signOut } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc, arrayUnion, updateDoc } from 'firebase/firestore';
+import { /* getFirestore, */ doc, setDoc, getDoc, arrayUnion, updateDoc } from 'firebase/firestore';
 import User from '../models/User';
+import { db } from '../firebase.js';
 
 const auth = getAuth();
-const db = getFirestore();
+// const db = getFirestore();
 
 // Register a new user with email and password
 export const registerUser = async (email, password, displayName) => {

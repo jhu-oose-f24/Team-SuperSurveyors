@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { loginUser } from '../services/userService';
 import '../styles/signup.css';
 
 const Login = () => {
@@ -33,22 +34,18 @@ const Login = () => {
             toggleShowFailure();
             return;
         }
-        signInWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                // Signed up 
-                let user = userCredential.user;
-                toggleShowSuccess();
-                navigate("/view", {state :{
-                    uid: user.uid,
-                    }
-                });
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                setFailureMsg(errorMessage);
-                toggleShowSuccess();
-            });
+        await loginUser(email, password).then(() => {
+            toggleShowSuccess();
+            setTimeout(() => {
+                navigate('/');
+            }, 2000);
+        }
+        ).catch((error) => {
+            setFailureMsg(error.message);
+            toggleShowFailure();
+            return;
+        });
+
         e.preventDefault();
 
     }
@@ -71,8 +68,8 @@ const Login = () => {
                     Submit
                 </Button>
             </Form>
-            <Button variant="Link" onClick = {() => {navigate("/signup");}}>Sign up</Button>
-            <br/>
+            <Button variant="Link" onClick={() => { navigate("/signup"); }}>Sign up</Button>
+            <br />
             <Toast show={showSuccess} onClose={toggleShowSuccess}>
                 <Toast.Body>Successfully signed in!</Toast.Body>
             </Toast>

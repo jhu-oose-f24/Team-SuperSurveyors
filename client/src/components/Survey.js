@@ -45,6 +45,17 @@ const SurveyForm = () => {
         // Add a new document with a generated id.
 
         const docRef = await addDoc(collection(db, 'surveys'), survey);
+        // add doc to SurveyResults with same id
+        await setDoc(doc(db, 'surveyResults', docRef.id), { surveyTitle: survey.title });
+
+        // add a question document for each question in suveryResults
+        questions.forEach(async (question, index) => {
+            await setDoc(doc(db, 'surveyResults', docRef.id, 'questions', index.toString()), {
+                questionType: question.type,
+                options: question.options,
+                responses: [],
+            });
+        });
 
         //add doc id to users surveys
         await addSurveyToUser(docRef.id);

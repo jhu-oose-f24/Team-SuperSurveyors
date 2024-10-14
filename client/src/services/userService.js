@@ -44,7 +44,6 @@ export const loginUser = async (email, password) => {
             return null;
         }
     } catch (error) {
-        console.error('Error logging in user: ', error);
         throw error;
     }
 };

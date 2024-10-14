@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import PrivateRoute from "./routes/PrivateRoutes";
 
 // Imports of developed components
 import Login from "./components/Login";
@@ -14,13 +15,17 @@ const App = () => {
         <Router>
             <NavBar />
             <Routes>
-                <Route path="/" element={<SurveyView />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
-                <Route path="/create" element={<SurveyForm />} />
-                <Route path="/view" element={<SurveyView />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/profile" element={<UserView />} />
+
+                <Route element={<PrivateRoute />}>
+                    <Route path="/" element={<SurveyView />} />
+                    <Route path="/create" element={<SurveyForm />} />
+                    <Route path="/view" element={<SurveyView />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/profile" element={<UserView />} />
+                </Route>
+
             </Routes>
         </Router>
     );

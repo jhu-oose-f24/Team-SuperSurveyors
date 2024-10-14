@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { updateUserProfile } from '../services/userService'; // Import the update function
 
 const EditUserProfileDialog = ({ show, onHide, userId, displayName, photoURL, onDisplayNameChange, onPhotoURLChange, onSave }) => {
+
     const handleSaveChanges = async () => {
         try {
             // Use the service to update the profile
@@ -13,9 +14,34 @@ const EditUserProfileDialog = ({ show, onHide, userId, displayName, photoURL, on
         }
     };
 
-    //Save dialog(only allow to change username and image url right now)
+    // Handle Enter key press to save changes
+    useEffect(() => {
+        const handleKeyPress = (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handleSaveChanges();
+            }
+        };
+
+        if (show) {
+            document.addEventListener('keydown', handleKeyPress);
+        } else {
+            document.removeEventListener('keydown', handleKeyPress);
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyPress);
+        };
+    }, [show, displayName, photoURL]);
+
+    // Handle clicking outside to save changes
+    const handleCloseAndSave = () => {
+        handleSaveChanges();
+        onHide(); // Close the modal
+    };
+
     return (
-        <Modal show={show} onHide={onHide} centered>
+        <Modal show={show} onHide={handleCloseAndSave} centered>
             <Modal.Header closeButton>
                 <Modal.Title>Edit User Profile</Modal.Title>
             </Modal.Header>

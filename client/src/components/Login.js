@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import Toast from 'react-bootstrap/Toast';
 import { useNavigate } from 'react-router-dom';
-import { getAuth } from "firebase/auth";
 import { loginUser } from '../services/userService';
 import '../styles/signup.css';
 
@@ -26,20 +25,26 @@ const Login = () => {
     
     const handleSignUp = async (e) => {
         e.preventDefault();
-        const auth = getAuth();
+
         if (!validatePassword()) {
-            setFailureMsg("password entered is too short");
+            setFailureMsg("The password entered is too short");
             toggleShowFailure();
             return;
         }
+
         await loginUser(email, password).then(() => {
+            setShowFailure(false);
             toggleShowSuccess();
-            setTimeout(() => {
-                navigate('/');
-            }, 2000);
-        }
-        ).catch((error) => {
-            setFailureMsg(error.message);
+            setTimeout(() => navigate('/'), 1000);
+        }).catch((error) => {
+            if (error.name === 'FirebaseError' && error.code === 'auth/invalid-email') {
+                setFailureMsg("Please enter a valid email address");
+            } else if (error.name === 'FirebaseError' && error.code === 'auth/invalid-credential') {
+                setFailureMsg("Invalid email and/or password. Press Sign Up if you don't have an account!");
+            } else {
+                setFailureMsg(error.message);
+            }
+
             toggleShowFailure();
             return;
         });
@@ -50,29 +55,30 @@ const Login = () => {
     return (
         <div className="input_container">
             <b className="title">
-                Welcome to MySurveyApp!
+                Welcome to SuperSurveyors!
             </b>
             <Form className="submit_container">
                 <Form.Group className="mb-3" controlId="formBasicEmail">
-                    <Form.Label>Email address</Form.Label>
+                    <Form.Label>Email Address:</Form.Label>
                     <Form.Control type="email" placeholder="Enter email" onChange={e => setEmail(e.target.value)} />
                 </Form.Group>
 
                 <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label>Password</Form.Label>
+                    <Form.Label>Password:</Form.Label>
                     <Form.Control type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />
                 </Form.Group>
                 <Button variant="primary" type="submit" onClick={(e) => handleSignUp(e)}>
                     Submit
                 </Button>
             </Form>
-            <Button variant="Link" onClick={() => { navigate("/signup"); }}>Sign up</Button>
             <br />
-            <Toast show={showSuccess} onClose={toggleShowSuccess}>
-                <Toast.Body>Successfully signed in!</Toast.Body>
+            <Button variant="outline-primary" onClick={() => { navigate("/signup"); }}>Sign Up</Button>
+            <br />
+            <Toast bg='success' show={showSuccess} onClose={toggleShowSuccess}>
+                <Toast.Body className='text-white'>Successfully signed in!</Toast.Body>
             </Toast>
-            <Toast show={showFailure} onClose={toggleShowFailure}>
-                <Toast.Body>{failureMsg}</Toast.Body>
+            <Toast bg='secondary' show={showFailure} onClose={toggleShowFailure}>
+                <Toast.Body className='text-white'>{failureMsg}</Toast.Body>
             </Toast>
         </div>
     );

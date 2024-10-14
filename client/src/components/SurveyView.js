@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button, Container, Row, Col } from 'react-bootstrap';
 import Question from './Question';
 import DeleteConfirmationDialog from './DeleteDialog.js'; // Import the DeleteDialog component
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../services/userService.js';
 import { getUserSurveys } from '../services/surveyService.js';
 
@@ -11,9 +11,10 @@ const SurveyView = () => {
     const [loading, setLoading] = useState(true);
     const [showDialog, setShowDialog] = useState(false);
     const [selectedSurvey, setSelectedSurvey] = useState(null); // Holds the survey selected for deletion
-    const location = useLocation();
-    const state = location.state;
-    console.log(state);
+    
+    // const location = useLocation();
+    // const state = location.state;
+    // console.log(state)
 
     // Use navigate to redirect
     const navigate = useNavigate();
@@ -67,11 +68,11 @@ const SurveyView = () => {
                                 <Card className="h-100 shadow-sm">
                                     <Card.Body>
                                         <Card.Title className="text-primary">{survey.title}</Card.Title>
-                                        <Card.Text>
+                                        <Card.Body>
                                             {survey.questions.map((question, index) => (
                                                 <Question key={index} question={question} />
                                             ))}
-                                        </Card.Text>
+                                        </Card.Body>
                                         <Button 
                                             variant="danger" 
                                             onClick={() => openDeleteDialog(survey)}

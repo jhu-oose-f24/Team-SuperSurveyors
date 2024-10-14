@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Button, ListGroup } from 'react-bootstrap';
-import { db } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { Form, Button } from 'react-bootstrap';
 import '../styles/signup.css';
 import Toast from 'react-bootstrap/Toast';
 import { useNavigate } from 'react-router-dom';

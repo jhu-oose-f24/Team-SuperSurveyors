@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import Toast from 'react-bootstrap/Toast';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { getAuth } from "firebase/auth";
 import { loginUser } from '../services/userService';
 import '../styles/signup.css';
 

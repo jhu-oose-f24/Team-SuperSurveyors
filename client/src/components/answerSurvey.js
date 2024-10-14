@@ -47,7 +47,7 @@ const Survey = () => {
     // Handle form submission
     const handleSubmit = (event) => {
         event.preventDefault();
-        console.log("User's Answers: ", answers);
+        // console.log("User's Answers: ", answers);
         // You can send the answers to a backend or process further here
     };
 

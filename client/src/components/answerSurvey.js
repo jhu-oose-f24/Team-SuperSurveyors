@@ -3,25 +3,32 @@ import React, { useState, useEffect } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import Question from './Question';
 import { db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
-
+import {collection, getDocs, doc, runTransaction,} from 'firebase/firestore';
 
 const Survey = () => {
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [surveyId, setSurveyId] = useState(null);
+    const [submissionSuccess, setSubmissionSuccess] = useState(false);
 
-
-    //get first survey from db
     const fetchSurveys = async () => {
         try {
-            const querySnapshot = await getDocs(collection(db, "surveys"));
+            const querySnapshot = await getDocs(collection(db, 'surveys'));
             const surveysData = querySnapshot.docs.map((doc) => ({
                 id: doc.id,
-                ...doc.data()
+                ...doc.data(),
             }));
-            setQuestions(surveysData[0].questions);
+            const survey = surveysData[0];
+            setSurveyId(survey.id);
+            // Assign IDs to questions based on their index
+            setQuestions(
+                survey.questions.map((question, index) => ({
+                    ...question,
+                    id: index.toString(),
+                }))
+            );
         } catch (error) {
-            console.error("Error fetching surveys:", error);
+            console.error('Error fetching surveys:', error);
         } finally {
             setLoading(false);
         }
@@ -29,27 +36,66 @@ const Survey = () => {
 
     useEffect(() => {
         fetchSurveys();
-    }
-        , []);
-
-    // State to store user's answers
+    }, []);
 
     const [answers, setAnswers] = useState({});
 
-    // Update answer when the user types or selects an option
     const handleAnswerChange = (questionId, value) => {
-        setAnswers(prevAnswers => ({
+        setAnswers((prevAnswers) => ({
             ...prevAnswers,
             [questionId]: value,
         }));
     };
 
-    // Handle form submission
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        console.log("User's Answers: ", answers);
-        // You can send the answers to a backend or process further here
+        try {
+            const promises = Object.entries(answers).map(
+                async ([questionId, answer]) => {
+                    const questionRef = doc(
+                        db,
+                        'surveyResults',
+                        surveyId,
+                        'questions',
+                        questionId
+                    );
+
+                    await runTransaction(db, async (transaction) => {
+                        const questionDoc = await transaction.get(questionRef);
+                        let currentResponses = [];
+                        if (questionDoc.exists()) {
+                            currentResponses =
+                                questionDoc.data().responses || [];
+                        }
+
+                        let newResponses;
+                        if (Array.isArray(answer)) {
+                            // For checkbox inputs
+                            newResponses = currentResponses.concat(answer);
+                        } else {
+                            // For text and radio inputs
+                            newResponses = currentResponses.concat([answer]);
+                        }
+
+                        transaction.update(questionRef, {
+                            responses: newResponses,
+                        });
+                    });
+                }
+            );
+
+            await Promise.all(promises);
+
+            setSubmissionSuccess(true);
+        } catch (error) {
+            console.error('Error submitting responses:', error);
+            alert('There was an error submitting your responses');
+        }
     };
+
+    if (submissionSuccess) {
+        return <div>Your response has been submitted.</div>;
+    }
 
     return (
         <Form onSubmit={handleSubmit}>

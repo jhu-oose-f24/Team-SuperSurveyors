@@ -1,5 +1,5 @@
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, getDocs, query, where, documentId, getDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, query, where, documentId } from 'firebase/firestore';
 
 const auth = getAuth();
 const db = getFirestore();
@@ -18,6 +18,7 @@ export const getUserSurveys = async () => {
             id: doc.id,
             ...doc.data()
         }));    
+        // TODO: Sort by...
         return surveysData;
     } catch (error) {
         console.error("Error fetching surveys:", error);

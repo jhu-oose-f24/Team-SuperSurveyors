@@ -60,7 +60,7 @@ const SurveyView = () => {
                 <div className="text-center">Loading surveys...</div>
             ) : (
                 <Row className="g-4">
-                    {surveys.length === 0 ? (
+                    {!surveys || surveys.length === 0 ? (
                         <div className="text-center">No surveys available.</div>
                     ) : (
                         surveys.map((survey) => (

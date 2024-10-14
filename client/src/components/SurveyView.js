@@ -6,12 +6,32 @@ import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../services/userService.js';
 import { getUserSurveys } from '../services/surveyService.js';
 
+import { Modal } from 'react-bootstrap';
+import { db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
+
+export const getSurveyResponses = async (surveyId) => {
+    const responsesRef = collection(db, 'surveyResults', surveyId, 'questions');
+    const querySnapshot = await getDocs(responsesRef);
+    
+    const responses = [];
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        responses.push(...data.responses); // Assuming responses is an array in each question document
+    });
+
+    return responses;
+};
+
+
 const SurveyView = () => {
     const [surveys, setSurveys] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showDialog, setShowDialog] = useState(false);
+    const [showResponseModal, setShowResponseModal] = useState(false); // Added this state
+ 
     const [selectedSurvey, setSelectedSurvey] = useState(null); // Holds the survey selected for deletion
-    
+    const [responses, setResponses] = useState([]); // Holds responses
     // const location = useLocation();
     // const state = location.state;
     // console.log(state)
@@ -53,6 +73,20 @@ const SurveyView = () => {
         setSurveys(surveys.filter(survey => survey.id !== surveyId));
     };
 
+    const openAnswerDialog = async (survey) => {
+        setSelectedSurvey(survey);
+        // Fetch the responses for the selected survey
+        let fetchedResponses = await getSurveyResponses(survey.id); // Assuming this is how you fetch responses
+        setResponses(fetchedResponses);
+        setShowResponseModal(true);
+    };
+
+    const closeResponseModal = () => {
+        setShowResponseModal(false);
+        setSelectedSurvey(null);
+    };
+
+
     return (
         <Container className="mt-5">
             <h2 className="text-center mb-4">Your Surveys</h2>
@@ -73,6 +107,14 @@ const SurveyView = () => {
                                                 <Question key={index} question={question} />
                                             ))}
                                         </Card.Body>
+
+                                        <Button 
+                                            onClick={() => openAnswerDialog(survey)}
+                                            className="mt-3 w-100"
+                                        >
+                                            View Results 
+                                        </Button>
+
                                         <Button 
                                             variant="danger" 
                                             onClick={() => openDeleteDialog(survey)}
@@ -80,6 +122,7 @@ const SurveyView = () => {
                                         >
                                             Delete Survey
                                         </Button>
+                                       
                                     </Card.Body>
                                 </Card>
                             </Col>
@@ -95,6 +138,30 @@ const SurveyView = () => {
                 survey={selectedSurvey} 
                 onSurveyDelete={handleSurveyDelete} 
             />
+            ###
+           {/* Modal to display responses */}
+           <Modal show={showResponseModal} onHide={closeResponseModal}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Survey Responses</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {responses.length === 0 ? (
+                        <p>No responses available.</p>
+                    ) : (
+                        <ul>
+                            {responses.map((response, index) => (
+                                <li key={index}>{response}</li>
+                            ))}
+                        </ul>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={closeResponseModal}>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
         </Container>
     );
 };

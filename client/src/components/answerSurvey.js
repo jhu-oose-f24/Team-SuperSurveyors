@@ -7,6 +7,7 @@ import {collection, getDocs, doc, runTransaction,} from 'firebase/firestore';
 
 const Survey = () => {
     const [questions, setQuestions] = useState([]);
+    const [surveyTitle, setSurveyTitle] = useState('');
     const [loading, setLoading] = useState(true);
     const [surveyId, setSurveyId] = useState(null);
     const [submissionSuccess, setSubmissionSuccess] = useState(false);
@@ -20,6 +21,8 @@ const Survey = () => {
             }));
             const survey = surveysData[0];
             setSurveyId(survey.id);
+            setSurveyTitle(survey.title);
+
             // Assign IDs to questions based on their index
             setQuestions(
                 survey.questions.map((question, index) => ({
@@ -98,18 +101,24 @@ const Survey = () => {
     }
 
     return (
-        <Form onSubmit={handleSubmit}>
-            {questions.map((question) => (
-                <Question
-                    key={question.id}
-                    question={question}
-                    onAnswerChange={handleAnswerChange}
-                />
-            ))}
-            <Button variant="primary" type="submit">
-                Submit Answers
-            </Button>
-        </Form>
+        <div className="d-flex justify-content-center mt-5">
+            <Form
+                onSubmit={handleSubmit}
+                style={{ maxWidth: '600px', width: '100%' }}
+            >
+                <h2 className="text-center mb-4">{surveyTitle}</h2>
+                {questions.map((question) => (
+                    <Question
+                        key={question.id}
+                        question={question}
+                        onAnswerChange={handleAnswerChange}
+                    />
+                ))}
+                <Button variant="primary" type="submit" className="d-block mx-auto">
+                    Submit Answers
+                </Button>
+            </Form>
+        </div>
     );
 };
 

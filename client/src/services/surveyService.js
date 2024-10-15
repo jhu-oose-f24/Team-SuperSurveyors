@@ -18,7 +18,7 @@ export const getUserSurveys = async () => {
             id: doc.id,
             ...doc.data()
         }));    
-        // TODO: Sort by...
+        // TODO: Sort by creation date
         return surveysData;
     } catch (error) {
         console.error("Error fetching surveys:", error);

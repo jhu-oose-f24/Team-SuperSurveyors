@@ -104,7 +104,7 @@ const SurveyView = () => {
                                         <Card.Title className="text-primary">{survey.title}</Card.Title>
                                         <Card.Body>
                                             {survey.questions.map((question, index) => (
-                                                <Question key={index} question={question} />
+                                                <Question key={index} question={question} onAnswerChange={() => {}}/>
                                             ))}
                                         </Card.Body>
 
@@ -138,7 +138,7 @@ const SurveyView = () => {
                 survey={selectedSurvey} 
                 onSurveyDelete={handleSurveyDelete} 
             />
-            ###
+
            {/* Modal to display responses */}
            <Modal show={showResponseModal} onHide={closeResponseModal}>
                 <Modal.Header closeButton>

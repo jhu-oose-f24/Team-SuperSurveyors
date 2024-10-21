@@ -9,26 +9,28 @@ import Signup from "./components/Signup";
 import SurveyForm from "./components/Survey";
 import SurveyView from "./components/SurveyView";
 import UserView from "./components/UserView";
+import AnswerSurvey from "./components/answerSurvey";
 
 const App = () => {
-    return (
-        <Router>
-            <NavBar />
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
+  return (
+    <Router>
+      <NavBar />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
-                <Route element={<PrivateRoute />}>
-                    <Route path="/" element={<SurveyView />} />
-                    <Route path="/create" element={<SurveyForm />} />
-                    <Route path="/view" element={<SurveyView />} />
-                    <Route path="/signup" element={<Signup />} />
-                    <Route path="/profile" element={<UserView />} />
-                </Route>
+        <Route element={<PrivateRoute />}>
+          <Route path="/" element={<SurveyView />} />
+          <Route path="/create" element={<SurveyForm />} />
+          <Route path="/view" element={<SurveyView />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/profile" element={<UserView />} />
+          <Route path="/answer" element={<AnswerSurvey />} />
+        </Route>
 
-            </Routes>
-        </Router>
-    );
+      </Routes>
+    </Router>
+  );
 };
 
 export default App;

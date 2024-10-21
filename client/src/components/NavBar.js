@@ -4,6 +4,7 @@ import { Navbar, Nav, Container, Button } from 'react-bootstrap';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { logoutUser, getCurrentUser } from '../services/userService';
 
+
 const NavBar = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -44,6 +45,9 @@ const NavBar = () => {
                             </Nav.Link>
                             <Nav.Link as={Link} to="/create">
                                 Create Survey
+                            </Nav.Link>
+                            <Nav.Link as={Link} to="/answer">
+                                Answer Survey
                             </Nav.Link>
                             {/* Navigates to "/profile" if authenticated */}
                             <Nav.Link as={Link} to={isAuthenticated ? "/profile" : "/"}>

@@ -3,9 +3,10 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import EditableQuestion from './Question/EditableQuestion';
 import { useState } from 'react';
 
-const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSaveChanges }) => {
+const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSaveChanges, onTitleChange }) => {
 
     const [currentTitle, setCurrentTitle] = useState(survey.title);
+    const [updatedQuestions, setUpdatedQuestions] = useState(survey.questions);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
@@ -21,20 +22,30 @@ const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSa
 
     const handleTitleChange = (newTitle) => {
         setCurrentTitle(newTitle);
+
     }
 
     const questionTitleChange = (index, newTitle) => {
-        const updatedQuestions = [...survey.questions];
-        console.log(updatedQuestions);
-        console.log(index);
-        updatedQuestions[index].text = newTitle;
-        onQuestionsChange(updatedQuestions);
+        //push to updatedQuestions
+        setUpdatedQuestions(updatedQuestions.map((question, i) => {
+            if (i === index) {
+                return { ...question, text: newTitle };
+            }
+            return question;
+        }
+        ));
+
+
     }
 
 
 
     return (
-        <Modal show={show} onHide={onHide} size='lg' >
+        <Modal show={show} onHide={() => {
+            setCurrentTitle(survey.title);
+            setUpdatedQuestions(survey.questions);
+            onHide();
+        }} size='lg' >
             <Modal.Header closeButton>
                 <Modal.Title>Edit Survey</Modal.Title>
             </Modal.Header>
@@ -48,6 +59,7 @@ const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSa
                             value={currentTitle}
                             onChange={(e) => handleTitleChange(e.target.value)}
                             onKeyDown={handleKeyDown}
+                            onBlur={() => { }}
                         />
                     </Form.Group>
                 </Form>
@@ -67,7 +79,7 @@ const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSa
                 <Button variant="secondary" onClick={onHide}>
                     Cancel
                 </Button>
-                <Button variant="primary" onClick={handleSaveChanges}>
+                <Button variant="primary" onClick={() => { onTitleChange(currentTitle); handleSaveChanges(survey.id) }}>
                     Save Changes
                 </Button>
             </Modal.Footer>

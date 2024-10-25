@@ -1,5 +1,5 @@
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, getDocs, query, where, documentId } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, query, where, documentId, setDoc, doc } from 'firebase/firestore';
 
 const auth = getAuth();
 const db = getFirestore();
@@ -17,11 +17,21 @@ export const getUserSurveys = async () => {
         const surveysData = querySnapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data()
-        }));    
+        }));
         // TODO: Sort by creation date
         return surveysData;
     } catch (error) {
         console.error("Error fetching surveys:", error);
     }
-    
+
 };
+
+//update a survey
+export const updateSurvey = async (surveyId, survey) => {
+    try {
+        await setDoc(doc(db, 'surveys', surveyId), survey);
+        console.log(surveyId);
+    } catch (error) {
+        console.error("Error updating survey:", error);
+    }
+}

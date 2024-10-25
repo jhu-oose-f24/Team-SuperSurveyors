@@ -4,7 +4,7 @@ import Question from './Question/Question';
 import DeleteConfirmationDialog from './DeleteDialog.js'; // Import the DeleteDialog component
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../services/userService.js';
-import { getUserSurveys } from '../services/surveyService.js';
+import { getUserSurveys, updateSurvey } from '../services/surveyService.js';
 
 import { Modal } from 'react-bootstrap';
 import { db } from '../firebase';
@@ -81,11 +81,33 @@ const SurveyView = () => {
         setShowEditDialog(true);
     };
 
-    const handleSaveChanges = async () => {
-        //TODO: Save the updated survey to Firestore
+    const handleSaveChanges = async (surveyId) => {
+        setSurveys(surveys.map(survey => survey.id === surveyId ? survey : survey));
+        //find relevant survey in surveys array and update it
+        var updatedSurvey = null;
+        for (let i = 0; i < surveys.length; i++) {
+            console.log(surveys[i].id);
+            console.log(surveyId);
+            if (surveys[i].id === surveyId) {
+                updatedSurvey = surveys[i];
+                break;
+            }
+        }
+        if (updatedSurvey) {
+            await updateSurvey(surveyId, updatedSurvey);
+        }
+
+
+
+
+
 
         // Close the dialog
         setShowEditDialog(false);
+    };
+
+    const surveyTitleChange = (newTitle) => {
+        setSurveys(surveys.map(survey => survey.id === selectedSurvey.id ? { ...survey, title: newTitle } : survey));
     };
 
     // Update the survey list after deletion
@@ -170,6 +192,7 @@ const SurveyView = () => {
                         setSelectedSurvey({ ...selectedSurvey, questions: updatedQuestions });
                     }}
                     handleSaveChanges={handleSaveChanges}
+                    onTitleChange={surveyTitleChange}
                 />
             )}
 

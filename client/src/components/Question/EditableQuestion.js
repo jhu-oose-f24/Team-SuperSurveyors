@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FaEdit, FaTimes } from 'react-icons/fa'; // Import edit and cancel icons
 import Question from './Question'; // Import the base Question component
 
-const EditableQuestion = ({ question, onAnswerChange, disabled, onTitleChange }) => {
+const EditableQuestion = ({ question, onAnswerChange, disabled, onTitleChange, id }) => {
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [editedTitle, setEditedTitle] = useState(question.text);
     const [originalTitle, setOriginalTitle] = useState(question.text);
@@ -22,7 +22,7 @@ const EditableQuestion = ({ question, onAnswerChange, disabled, onTitleChange })
             return;
         }
         setIsEditingTitle(false);
-        onTitleChange(question.id, editedTitle);
+        onTitleChange(id, editedTitle);
     };
 
     const handleCancelEdit = (e) => {
@@ -51,7 +51,6 @@ const EditableQuestion = ({ question, onAnswerChange, disabled, onTitleChange })
                             autoFocus
                             style={{
                                 width: '100%',
-                                fontSize: '1.25rem',
                                 padding: '8px',
                             }}
                         />
@@ -73,10 +72,12 @@ const EditableQuestion = ({ question, onAnswerChange, disabled, onTitleChange })
                     </>
                 ) : (
                     <div style={{ display: 'flex', alignItems: 'center', width: '100%', cursor: 'pointer' }}>
-                        <h5 className="p-2" onClick={handleTitleClick} style={{ margin: 0, flexGrow: 1 }}>
+                        <p className="p-2" onClick={handleTitleClick} style={{ margin: 0, flexGrow: 1 }}>
                             {editedTitle}
-                        </h5>
-                        <FaEdit onClick={handleTitleClick} style={{ marginLeft: 8, fontSize: 'larger' }} />
+                        </p>
+                        <button onClick={handleTitleClick} style={{ color: ' black', border: 'none', background: 'none' }}>
+                            <FaEdit size={16} />
+                        </button>
                     </div>
                 )}
             </div>

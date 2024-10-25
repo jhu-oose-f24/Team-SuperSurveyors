@@ -8,7 +8,7 @@ import { getUserSurveys, updateSurvey } from '../services/surveyService.js';
 
 import { Modal } from 'react-bootstrap';
 import { db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, or } from 'firebase/firestore';
 
 import { FaEdit } from 'react-icons/fa';
 import EditQuestionsDialog from './EditQuestionsDialog.js';
@@ -37,6 +37,8 @@ const SurveyView = () => {
 
     const [selectedSurvey, setSelectedSurvey] = useState(null); // Holds the survey selected for deletion
     const [responses, setResponses] = useState([]); // Holds responses
+    const [originalSurvey, setOriginalSurvey] = useState(null);
+    const [orginialQuestions, setOriginalQuestions] = useState([]);
     // const location = useLocation();
     // const state = location.state;
     // console.log(state)
@@ -78,6 +80,15 @@ const SurveyView = () => {
 
     const handleEditClick = (survey) => {
         setSelectedSurvey(survey);
+        setOriginalSurvey(survey);
+        // hard copy of questions
+        var questions = [];
+        survey.questions.forEach(question => {
+            var newQuestion = { ...question };
+            questions.push(newQuestion);
+        }
+        );
+        setOriginalQuestions(questions);
         setShowEditDialog(true);
     };
 
@@ -86,8 +97,6 @@ const SurveyView = () => {
         //find relevant survey in surveys array and update it
         var updatedSurvey = null;
         for (let i = 0; i < surveys.length; i++) {
-            console.log(surveys[i].id);
-            console.log(surveyId);
             if (surveys[i].id === surveyId) {
                 updatedSurvey = surveys[i];
                 break;
@@ -186,7 +195,20 @@ const SurveyView = () => {
             {selectedSurvey && (
                 <EditQuestionsDialog
                     show={showEditDialog}
-                    onHide={() => setShowEditDialog(false)}
+                    onHide={() => {
+                        for (let i = 0; i < surveys.length; i++) {
+                            if (surveys[i].id === selectedSurvey.id) {
+                                surveys[i] = originalSurvey;
+                                surveys[i].questions = orginialQuestions;
+                                break;
+                            }
+                        }
+
+                        setSelectedSurvey(null)
+
+
+                            ; setShowEditDialog(false)
+                    }}
                     survey={selectedSurvey}
                     onQuestionsChange={(updatedQuestions) => {
                         setSelectedSurvey({ ...selectedSurvey, questions: updatedQuestions });

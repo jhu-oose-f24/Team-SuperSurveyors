@@ -6,7 +6,6 @@ import { useState } from 'react';
 const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSaveChanges, onTitleChange }) => {
 
     const [currentTitle, setCurrentTitle] = useState(survey.title);
-    const [updatedQuestions, setUpdatedQuestions] = useState(survey.questions);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
@@ -22,28 +21,19 @@ const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSa
 
     const handleTitleChange = (newTitle) => {
         setCurrentTitle(newTitle);
-
+        onTitleChange(newTitle);
     }
 
     const questionTitleChange = (index, newTitle) => {
-        //push to updatedQuestions
-        setUpdatedQuestions(updatedQuestions.map((question, i) => {
-            if (i === index) {
-                return { ...question, text: newTitle };
-            }
-            return question;
-        }
-        ));
-
-
+        const updatedQuestions = [...survey.questions];
+        updatedQuestions[index].text = newTitle;
+        onQuestionsChange(updatedQuestions);
     }
 
 
 
     return (
-        <Modal show={show} onHide={() => {
-            setCurrentTitle(survey.title);
-            setUpdatedQuestions(survey.questions);
+        <Modal backdrop='static' keyboard={false} show={show} onHide={() => {
             onHide();
         }} size='lg' >
             <Modal.Header closeButton>
@@ -76,10 +66,14 @@ const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSa
                 </Form>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="secondary" onClick={onHide}>
+                <Button variant="secondary" onClick={() => {
+                    setCurrentTitle(survey.title);
+                    onQuestionsChange(survey.questions);
+                    onHide();
+                }}>
                     Cancel
                 </Button>
-                <Button variant="primary" onClick={() => { onTitleChange(currentTitle); handleSaveChanges(survey.id) }}>
+                <Button variant="primary" onClick={() => { handleSaveChanges(survey.id) }}>
                     Save Changes
                 </Button>
             </Modal.Footer>

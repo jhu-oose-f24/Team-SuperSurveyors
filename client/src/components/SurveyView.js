@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Container, Row, Col } from 'react-bootstrap';
-import Question from './Question';
+import Question from './Question/Question';
 import DeleteConfirmationDialog from './DeleteDialog.js'; // Import the DeleteDialog component
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../services/userService.js';
@@ -10,10 +10,13 @@ import { Modal } from 'react-bootstrap';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
+import { FaEdit } from 'react-icons/fa';
+import EditQuestionsDialog from './EditQuestionsDialog.js';
+
 export const getSurveyResponses = async (surveyId) => {
     const responsesRef = collection(db, 'surveyResults', surveyId, 'questions');
     const querySnapshot = await getDocs(responsesRef);
-    
+
     const responses = [];
     querySnapshot.forEach((doc) => {
         const data = doc.data();
@@ -24,21 +27,26 @@ export const getSurveyResponses = async (surveyId) => {
 };
 
 
+
+
 const SurveyView = () => {
     const [surveys, setSurveys] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showDialog, setShowDialog] = useState(false);
     const [showResponseModal, setShowResponseModal] = useState(false); // Added this state
- 
+
     const [selectedSurvey, setSelectedSurvey] = useState(null); // Holds the survey selected for deletion
     const [responses, setResponses] = useState([]); // Holds responses
     // const location = useLocation();
     // const state = location.state;
     // console.log(state)
 
+    const [showEditDialog, setShowEditDialog] = useState(false);
+
+
     // Use navigate to redirect
     const navigate = useNavigate();
-    
+
     //uid is state.uid;
 
     // Fetch surveys from Firestore
@@ -66,6 +74,18 @@ const SurveyView = () => {
     const closeDeleteDialog = () => {
         setShowDialog(false);
         setSelectedSurvey(null);
+    };
+
+    const handleEditClick = (survey) => {
+        setSelectedSurvey(survey);
+        setShowEditDialog(true);
+    };
+
+    const handleSaveChanges = async () => {
+        //TODO: Save the updated survey to Firestore
+
+        // Close the dialog
+        setShowEditDialog(false);
     };
 
     // Update the survey list after deletion
@@ -101,28 +121,37 @@ const SurveyView = () => {
                             <Col key={survey.id} md={6} lg={4}>
                                 <Card className="h-100 shadow-sm">
                                     <Card.Body>
-                                        <Card.Title className="text-primary">{survey.title}</Card.Title>
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <Card.Title className="text-primary mb-0">{survey.title}</Card.Title>
+                                            <Button
+                                                variant="outline-primary"
+                                                onClick={() => { handleEditClick(survey) }}
+                                            >
+                                                <FaEdit /> Edit
+                                            </Button>
+                                        </div>
+
                                         <Card.Body>
                                             {survey.questions.map((question, index) => (
-                                                <Question key={index} question={question} onAnswerChange={() => {}}/>
+                                                <Question key={index} question={question} disabled={true} onAnswerChange={() => { }} />
                                             ))}
                                         </Card.Body>
 
-                                        <Button 
+                                        <Button
                                             onClick={() => openAnswerDialog(survey)}
                                             className="mt-3 w-100"
                                         >
-                                            View Results 
+                                            View Results
                                         </Button>
 
-                                        <Button 
-                                            variant="danger" 
+                                        <Button
+                                            variant="danger"
                                             onClick={() => openDeleteDialog(survey)}
                                             className="mt-3 w-100"
                                         >
                                             Delete Survey
                                         </Button>
-                                       
+
                                     </Card.Body>
                                 </Card>
                             </Col>
@@ -131,16 +160,29 @@ const SurveyView = () => {
                 </Row>
             )}
 
+            {/* EditQuestionsDialog Modal */}
+            {selectedSurvey && (
+                <EditQuestionsDialog
+                    show={showEditDialog}
+                    onHide={() => setShowEditDialog(false)}
+                    survey={selectedSurvey}
+                    onQuestionsChange={(updatedQuestions) => {
+                        setSelectedSurvey({ ...selectedSurvey, questions: updatedQuestions });
+                    }}
+                    handleSaveChanges={handleSaveChanges}
+                />
+            )}
+
             {/* DeleteConfirmationDialog Modal */}
-            <DeleteConfirmationDialog 
-                show={showDialog} 
-                onHide={closeDeleteDialog} 
-                survey={selectedSurvey} 
-                onSurveyDelete={handleSurveyDelete} 
+            <DeleteConfirmationDialog
+                show={showDialog}
+                onHide={closeDeleteDialog}
+                survey={selectedSurvey}
+                onSurveyDelete={handleSurveyDelete}
             />
 
-           {/* Modal to display responses */}
-           <Modal show={showResponseModal} onHide={closeResponseModal}>
+            {/* Modal to display responses */}
+            <Modal show={showResponseModal} onHide={closeResponseModal}>
                 <Modal.Header closeButton>
                     <Modal.Title>Survey Responses</Modal.Title>
                 </Modal.Header>

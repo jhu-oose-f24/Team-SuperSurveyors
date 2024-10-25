@@ -2,7 +2,7 @@
 import React from 'react';
 import { Form } from 'react-bootstrap';
 
-const Question = ({ question, onAnswerChange }) => {
+const Question = ({ question, onAnswerChange, disabled, showTitle = true }) => {
     const handleChange = (e) => {
         const value = question.type === 'checkbox'
             ? [...e.target.parentNode.querySelectorAll('input[type=checkbox]:checked')].map(input => input.value)
@@ -13,18 +13,20 @@ const Question = ({ question, onAnswerChange }) => {
 
     return (
         <div className="mb-3">
-            <p>{question.text}</p>
+            {showTitle && <Form.Label>{question.text}</Form.Label>}
             {question.type === 'text' && (
                 <Form.Control
                     type="text"
                     placeholder="Your answer"
                     onChange={handleChange}
+                    disabled={disabled}
                 />
             )}
             {question.type === 'radio' && (
                 <div>
                     {question.options.map((option, index) => (
                         <Form.Check
+
                             key={index}
                             type="radio"
                             label={option}
@@ -32,6 +34,7 @@ const Question = ({ question, onAnswerChange }) => {
                             id={`formHorizontalRadios${index}`}
                             value={option}
                             onChange={handleChange}
+                            disabled={disabled}
                         />
                     ))}
                 </div>
@@ -47,6 +50,7 @@ const Question = ({ question, onAnswerChange }) => {
                             id={`formHorizontalCheck${index}`}
                             value={option}
                             onChange={handleChange}
+                            disabled={disabled}
                         />
                     ))}
                 </div>

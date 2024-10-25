@@ -1,9 +1,9 @@
 // src/components/Survey.js
 import React, { useState, useEffect } from 'react';
 import { Form, Button } from 'react-bootstrap';
-import Question from './Question';
+import Question from './Question/Question';
 import { db } from '../firebase';
-import {collection, getDocs, doc, runTransaction,} from 'firebase/firestore';
+import { collection, getDocs, doc, runTransaction, } from 'firebase/firestore';
 
 const Survey = () => {
     const [questions, setQuestions] = useState([]);

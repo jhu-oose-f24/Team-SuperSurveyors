@@ -1,7 +1,7 @@
 // src/components/SurveyForm.js
 import React, { useState } from 'react';
 import { Form, Button, ListGroup } from 'react-bootstrap';
-import Question from './Question';
+import Question from './Question/Question';
 import { db } from '../firebase';
 import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 import '../services/userService';

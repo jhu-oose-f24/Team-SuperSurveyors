@@ -12,29 +12,13 @@ const Login = () => {
     const [showFailure, setShowFailure] = useState(false);
     const [failureMsg, setFailureMsg] = useState("");
     const navigate = useNavigate();
-  
-    const toggleShowSuccess = () => setShowSuccess(!showSuccess);
-    const toggleShowFailure = () => setShowFailure(!showFailure);
-
-    const validatePassword = () => {
-        if (password.length < 8) {
-            return false;
-        }
-        return true;
-    }
     
     const handleSignUp = async (e) => {
         e.preventDefault();
 
-        if (!validatePassword()) {
-            setFailureMsg("The password entered is too short");
-            toggleShowFailure();
-            return;
-        }
-
         await loginUser(email, password).then(() => {
             setShowFailure(false);
-            toggleShowSuccess();
+            setShowSuccess(true);
             setTimeout(() => navigate('/'), 1000);
         }).catch((error) => {
             if (error.name === 'FirebaseError' && error.code === 'auth/invalid-email') {
@@ -45,7 +29,7 @@ const Login = () => {
                 setFailureMsg(error.message);
             }
 
-            toggleShowFailure();
+            setShowFailure(true);
             return;
         });
 
@@ -74,10 +58,10 @@ const Login = () => {
             <br />
             <Button variant="outline-primary" onClick={() => { navigate("/signup"); }}>Sign Up</Button>
             <br />
-            <Toast bg='success' show={showSuccess} onClose={toggleShowSuccess}>
+            <Toast bg='success' show={showSuccess} onClose={() => setShowSuccess(false)} delay={2000} autohide>
                 <Toast.Body className='text-white'>Successfully signed in!</Toast.Body>
             </Toast>
-            <Toast bg='secondary' show={showFailure} onClose={toggleShowFailure}>
+            <Toast bg='secondary' show={showFailure} onClose={() => setShowFailure(false)} delay={2000} autohide>
                 <Toast.Body className='text-white'>{failureMsg}</Toast.Body>
             </Toast>
         </div>

@@ -1,77 +1,78 @@
 import React, { useState } from 'react';
-import { Form, Button } from 'react-bootstrap';
-import '../styles/signup.css';
-import Toast from 'react-bootstrap/Toast';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
-import '../services/userService';
-import { registerUser } from '../services/userService';
 
 const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [displayName, setDisplayName] = useState('');
     const navigate = useNavigate();
-    const [showSuccess, setShowSuccess] = useState(false);
-    const [showFailure, setShowFailure] = useState(false);
-    const [failureMsg, setFailureMsg] = useState("");
 
-    const toggleShowSuccess = () => setShowSuccess(!showSuccess);
-    const toggleShowFailure = () => setShowFailure(!showFailure);
-
-    const validatePassword = () => {
-        if (password.length < 8) {
-            return false;
-        }
-        return true;
-    }
     const handleSignUp = async (e) => {
         e.preventDefault();
-        await registerUser(email, password, email).then(() => {
-            toggleShowSuccess();
-            setTimeout(() => {
-                navigate('/');
-            }, 2000);
+        const auth = getAuth();
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            // Create user document in Firestore
+            await setDoc(doc(db, 'users', user.uid), {
+                displayName: displayName,
+                email: user.email,
+                photoURL: user.photoURL || null,
+                surveys: [],
+                tags: [], // Empty tags to be filled during onboarding
+                uid: user.uid,
+            });
+
+            // Redirect to onboarding
+            navigate(`/onboarding/${user.uid}`);
+        } catch (error) {
+            console.error('Sign up error:', error);
+            alert('Sign up failed. Please try again.');
         }
-        ).catch((error) => {
-            setFailureMsg(error.message);
-            toggleShowFailure();
-            return;
-        });
-        e.preventDefault();
+    };
 
-    }
     return (
-        <div className="input_container">
-            <b className="title">
-                Sign up for MySurveyApp!
-            </b>
-            <Form className="submit_container">
-                <Form.Group className="mb-3" controlId="formBasicEmail">
-                    <Form.Label>Email address</Form.Label>
-                    <Form.Control type="email" placeholder="Enter email" onChange={e => setEmail(e.target.value)} />
-                    <Form.Text className="text-muted">
-                        We'll never share your email with anyone else.
-                    </Form.Text>
-                </Form.Group>
-
-                <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label>Password</Form.Label>
-                    <Form.Control type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />
-                    <Form.Text className="text-muted">
-                        Please enter a password at least 8 characters long
-                    </Form.Text>
-                </Form.Group>
-                <Button variant="primary" type="submit" onClick={(e) => handleSignUp(e)}>
-                    Submit
-                </Button>
-            </Form>
-            <Button variant="Link" onClick = {() => {navigate("/");}}>Back to Login</Button>
-            <br/>
-            <Toast show={showSuccess} onClose={toggleShowSuccess}>
-                <Toast.Body>Successfully created an account for you!</Toast.Body>
-            </Toast>
-            <Toast show={showFailure} onClose={toggleShowFailure}>
-                <Toast.Body>{failureMsg}</Toast.Body>
-            </Toast>
+        <div className="container mt-5">
+            <h2>Sign Up</h2>
+            <form onSubmit={handleSignUp}>
+                <div className="form-group">
+                    <label>Display Name</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="form-group mt-3">
+                    <label>Email</label>
+                    <input
+                        type="email"
+                        className="form-control"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="form-group mt-3">
+                    <label>Password</label>
+                    <input
+                        type="password"
+                        className="form-control"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                </div>
+                <button type="submit" className="btn btn-primary mt-4">
+                    Sign Up
+                </button>
+            </form>
         </div>
     );
 };

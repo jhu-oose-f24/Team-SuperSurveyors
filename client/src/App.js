@@ -10,6 +10,7 @@ import SurveyForm from "./components/Survey";
 import SurveyView from "./components/SurveyView";
 import UserView from "./components/UserView";
 import AnswerSurvey from "./components/answerSurvey";
+import Onboarding from "./components/Onboarding"; // Import the Onboarding component
 
 const App = () => {
   return (
@@ -18,16 +19,18 @@ const App = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        
+        {/* Add the Onboarding route with user ID */}
+        <Route path="/onboarding/:userId" element={<Onboarding />} />
 
+        {/* Protected Routes */}
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<SurveyView />} />
           <Route path="/create" element={<SurveyForm />} />
           <Route path="/view" element={<SurveyView />} />
-          <Route path="/signup" element={<Signup />} />
           <Route path="/profile" element={<UserView />} />
           <Route path="/answer" element={<AnswerSurvey />} />
         </Route>
-
       </Routes>
     </Router>
   );

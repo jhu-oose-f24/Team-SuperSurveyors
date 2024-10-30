@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Form, Button, Toast } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { doc, runTransaction, setDoc, getDoc, deleteDoc, collection, query, where, getDocs, documentId } from 'firebase/firestore';
+import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId } from 'firebase/firestore';
 import { db } from '../firebase';
 import Question from './Question';
 import { getRandomSurvey } from '../services/surveyService';
@@ -22,7 +22,7 @@ const Survey = () => {
     const pq = new PriorityQueue((s1, s2) => {
         if (s1[0] > s2[0]) {
             return 1;
-        } else if (s1[0] == s2[0]) {
+        } else if (s1[0] === s2[0]) {
             return 0;
         }
         return -1;
@@ -32,14 +32,14 @@ const Survey = () => {
 
     const auth = getAuth();
     //Get user uid
-    const getUserId = () => {
+    const getUserId = useCallback(() => {
         const user = auth.currentUser;
         if (user) {
             return user.uid;
         } else {
             throw new Error('User not logged in');
         }
-    };
+    }, [auth.currentUser]);
 
     const fetchIncompleteSurvey = async () => {
         try {
@@ -82,10 +82,16 @@ const Survey = () => {
                     userTags = child.data().tags;
                 }
             });
-            const surveyInfo = query(
-                collection(db, 'surveys'),
-                where(documentId(), 'not-in', userOwnedSurveys)
-            );
+
+            let surveyInfo;
+            if (userOwnedSurveys.length) {
+                surveyInfo = query(
+                    collection(db, 'surveys'),
+                    where(documentId(), 'not-in', userOwnedSurveys));
+            } else {
+                surveyInfo = query(collection(db, 'surveys'));
+            }
+
             const allSurveysSnapshot = await getDocs(surveyInfo);
             allSurveysSnapshot.forEach((child) => {
                 let survey = child.data();
@@ -167,16 +173,16 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
     setSurveyId(surveyData.id);
     setSurveyTitle(surveyData.title);
 
-    // Assign IDs to questions based on their index
-    setQuestions(
-        surveyData.questions.map((question, index) => ({
-            ...question,
-            id: index.toString(),
-        }))
-    );
+        // Assign IDs to questions based on their index
+        setQuestions(
+            surveyData.questions.map((question, index) => ({
+                ...question,
+                id: index.toString(),
+            }))
+        );
 
-    setLoading(false);
-};
+        setLoading(false);
+    };
 
     const handleAnswerChange = (questionId, value) => {
         setAnswers((prevAnswers) => {
@@ -287,7 +293,7 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
     }, []);
 
     if (loading) {
-        return <div className="d-flex flex-column align-items-center mt-5">Loading up surveys</div>;
+        return <div className="d-flex flex-column align-items-center mt-5">Loading up a survey...</div>;
     } else if (submissionSuccess) {
         return (
             <div className="d-flex flex-column align-items-center mt-5">

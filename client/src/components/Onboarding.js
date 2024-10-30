@@ -9,6 +9,7 @@ const Onboarding = () => {
     const [tags, setTags] = useState([]);
     const [selectedTags, setSelectedTags] = useState([]);
     const navigate = useNavigate();
+    const minTags = 5;
 
     // Fetch tags with images from Firestore on component mount
     useEffect(() => {
@@ -95,14 +96,14 @@ const Onboarding = () => {
                     </Col>
                 ))}
             </Row>
-            <div className="text-center mt-4">
+            <div className="text-center m-4">
                 <Button
-                    variant="success"
+                    variant={selectedTags.length < minTags ? 'outline-success' : 'success'} 
                     size="lg"
                     onClick={handleComplete}
-                    disabled={selectedTags.length < 5}
+                    disabled={selectedTags.length < minTags}
                 >
-                    Complete Onboarding
+                    {selectedTags.length < minTags ? 'Select ' + (minTags - selectedTags.length) + ' more tags' : 'Complete Onboarding'}
                 </Button>
             </div>
         </Container>

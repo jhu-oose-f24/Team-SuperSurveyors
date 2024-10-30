@@ -9,6 +9,7 @@ import { getUserSurveys } from '../services/surveyService.js';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
+
 export const getSurveyResponses = async (surveyId) => {
   const responsesRef = collection(db, 'surveyResults', surveyId, 'questions');
   const querySnapshot = await getDocs(responsesRef);
@@ -21,6 +22,8 @@ export const getSurveyResponses = async (surveyId) => {
 
   return responses;
 };
+
+
 
 const SurveyView = () => {
   const [surveys, setSurveys] = useState([]);
@@ -61,12 +64,15 @@ const SurveyView = () => {
     setSurveys(surveys.filter((survey) => survey.id !== surveyId));
   };
 
-  const openAnswerDialog = async (survey) => {
-    setSelectedSurvey(survey);
-    let fetchedResponses = await getSurveyResponses(survey.id);
-    setResponses(fetchedResponses);
-    setShowResponseModal(true);
-  };
+  // const openAnswerDialog = async (survey) => {
+  //   setSelectedSurvey(survey);
+  //   let fetchedResponses = await getSurveyResponses(survey.id);
+  //   setResponses(fetchedResponses);
+  //   setShowResponseModal(true);
+  // };
+  const openAnswerDialog = (survey) => {
+    navigate(`/survey-results/${survey.id}`);
+  };  
 
   const closeResponseModal = () => {
     setShowResponseModal(false);
@@ -163,4 +169,4 @@ const SurveyView = () => {
   );
 };
 
-export default SurveyView;
+export default SurveyView; 

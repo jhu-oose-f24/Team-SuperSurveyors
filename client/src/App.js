@@ -12,6 +12,8 @@ import UserView from "./components/UserView";
 import AnswerSurvey from "./components/answerSurvey";
 import Onboarding from "./components/Onboarding"; // Import the Onboarding component
 
+import SurveyResults from './components/SurveyResults';
+
 const App = () => {
   return (
     <Router>
@@ -30,6 +32,8 @@ const App = () => {
           <Route path="/view" element={<SurveyView />} />
           <Route path="/profile" element={<UserView />} />
           <Route path="/answer" element={<AnswerSurvey />} />
+          
+          <Route path="/survey-results/:surveyId" element={<SurveyResults />} />
         </Route>
       </Routes>
     </Router>

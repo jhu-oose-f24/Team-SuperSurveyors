@@ -1,6 +1,8 @@
 {
   "dependencies": {
-    "concurrently": "^9.0.1"
+    "chart.js": "^4.4.6",
+    "concurrently": "^9.0.1",
+    "react-chartjs-2": "^5.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"

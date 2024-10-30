@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Form, Button, Toast } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { doc, runTransaction, setDoc, getDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId } from 'firebase/firestore';
 import { db } from '../firebase';
 import Question from './Question';
 import { getRandomSurvey } from '../services/surveyService';
 import { getAuth } from 'firebase/auth';
+import {
+    PriorityQueue,
+  } from '@datastructures-js/priority-queue';
 
 const Survey = () => {
     const [questions, setQuestions] = useState([]);
@@ -16,7 +19,14 @@ const Survey = () => {
     const [submissionSuccess, setSubmissionSuccess] = useState(false);
     const [showFailure, setShowFailure] = useState(false);
     const [failureTxt, setFailureTxt] = useState('');
-
+    const pq = new PriorityQueue((s1, s2) => {
+        if (s1[0] > s2[0]) {
+            return 1;
+        } else if (s1[0] === s2[0]) {
+            return 0;
+        }
+        return -1;
+    });
     // Use navigate to redirect
     const navigate = useNavigate();
 
@@ -31,7 +41,7 @@ const Survey = () => {
         }
     }, [auth.currentUser]);
 
-    const fetchIncompleteSurvey = useCallback(async () => {
+    const fetchIncompleteSurvey = async () => {
         try {
             const userId = getUserId();
             const q = query(
@@ -54,45 +64,114 @@ const Survey = () => {
             console.error('Error fetching incomplete survey:', error);
             return null;
         }
-    }, [getUserId]);
+    };
 
-    const fetchSurveys = useCallback(async (ignoreIncompleteSurvey = false) => {
-        setQuestions([]);
-        setLoading(true);
-        setSubmissionSuccess(false);
-
-        let surveyData;
-
-        if (!ignoreIncompleteSurvey) {
-            //check if there are any unfinished questionnaires
-            const incompleteSurvey = await fetchIncompleteSurvey();
-
-            if (incompleteSurvey) {
-                // If there is an incomplete questionnaire, load it
-                const docRef = doc(db, 'surveys', incompleteSurvey.surveyId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    surveyData = { id: docSnap.id, ...docSnap.data() };
-                    setAnswers(incompleteSurvey.answers);
-                } else {
-                    console.error('Survey not found');
-                    //If the questionnaire is not found, load the random questionnaire
-                    setAnswers({});
-                    surveyData = await getRandomSurvey();
+    const fetchSurveyBasedOnTag = async () => {
+        try {
+            const userId = getUserId();
+            const userInfo = query(
+                collection(db, 'users'),
+                where(documentId(), '==', userId)
+            );
+            const userInfoSnapshot = await getDocs(userInfo);
+            let userOwnedSurveys = [];
+            let userTags = [];
+            userInfoSnapshot.forEach((child) => {
+                userOwnedSurveys = child.data().surveys;
+                if (child.data().tags) {
+                    userTags = child.data().tags;
                 }
-            } else {
-                // If there are no unfinished questionnaires, load random questionnaires
-                setAnswers({});
-                surveyData = await getRandomSurvey();
-            }
-        } else {
-    // If user ignore unfinished questionnaires, load random questionnaires directly
-            setAnswers({});
-            surveyData = await getRandomSurvey();
-        }
+            });
 
-        setSurveyId(surveyData.id);
-        setSurveyTitle(surveyData.title);
+            let surveyInfo;
+            if (userOwnedSurveys.length) {
+                surveyInfo = query(
+                    collection(db, 'surveys'),
+                    where(documentId(), 'not-in', userOwnedSurveys));
+            } else {
+                surveyInfo = query(collection(db, 'surveys'));
+            }
+
+            const allSurveysSnapshot = await getDocs(surveyInfo);
+            allSurveysSnapshot.forEach((child) => {
+                let survey = child.data();
+                let commonTags = 0;
+                //if survey is tagged, calculate its score
+                if (survey.tags) {
+                    for (let i = 0; i < survey.tags.length; i++) {
+                        if (userTags.includes(survey.tags[i])) {
+                            commonTags = commonTags + 1;
+                        }
+                    }
+                }
+                let score = commonTags;
+                pq.enqueue((score, {
+                    id : child.id,
+                    ...survey
+                }));
+            })
+            return pq;
+        } catch (error) {
+            console.error("Error fetching tagged survey recommendation: ", error);
+        }
+    };
+
+const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
+    setQuestions([]);
+    setLoading(true);
+    setSubmissionSuccess(false);
+    let surveyData;
+    if (pq.isEmpty()) {
+        console.log("recommended pq is empty!");
+        setAnswers({});
+        surveyData = await getRandomSurvey();
+    } else {
+        console.log("getting recommended survey!");
+        setAnswers({});
+        surveyData = pq.dequeue();
+        console.log(surveyData);
+    }
+
+//     if (!ignoreIncompleteSurvey) {
+//         //check if there are any unfinished questionnaires
+//         const incompleteSurvey = await fetchIncompleteSurvey();
+
+//         if (incompleteSurvey) {
+//             // If there is an incomplete questionnaire, load it
+//             const docRef = doc(db, 'surveys', incompleteSurvey.surveyId);
+//             const docSnap = await getDoc(docRef);
+//             if (docSnap.exists()) {
+//                 surveyData = { id: docSnap.id, ...docSnap.data() };
+//                 setAnswers(incompleteSurvey.answers);
+//             } else {
+//                 console.error('Survey not found');
+//                 //If the questionnaire is not found, load the highest score questionaire
+//                 if (pq.isEmpty()) {
+//                     setAnswers({});
+//                     surveyData = await getRandomSurvey();
+//                 } else {
+//                     console.log("recommended is empty!");
+//                     surveyData = pq.dequeue()[1];
+//                 }
+//             }
+//         } else {
+//             // If there are no unfinished questionnaires, load highest score questionare
+//             if (pq.isEmpty()) {
+//                 setAnswers({});
+//                 surveyData = await getRandomSurvey();
+//             } else {
+//                 console.log("recommended is empty!");
+//                 surveyData = pq.dequeue()[1];
+//             }
+//         }
+//     } else {
+// // If user ignore unfinished questionnaires, load random questionnaires directly
+//         setAnswers({});
+//         surveyData = await getRandomSurvey();
+//     }
+
+    setSurveyId(surveyData.id);
+    setSurveyTitle(surveyData.title);
 
         // Assign IDs to questions based on their index
         setQuestions(
@@ -103,7 +182,7 @@ const Survey = () => {
         );
 
         setLoading(false);
-    }, [fetchIncompleteSurvey]);
+    };
 
     const handleAnswerChange = (questionId, value) => {
         setAnswers((prevAnswers) => {
@@ -208,8 +287,10 @@ const Survey = () => {
     };
 
     useEffect(() => {
-        fetchSurveys();
-    }, [fetchSurveys]);
+        fetchSurveyBasedOnTag().then(() => {
+            fetchSurveys();
+        });
+    }, []);
 
     if (loading) {
         return <div className="d-flex flex-column align-items-center mt-5">Loading up a survey...</div>;

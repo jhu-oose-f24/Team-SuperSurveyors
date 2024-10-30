@@ -1,11 +1,11 @@
 // src/components/SurveyView.js
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Container, Row, Col, Badge, Modal } from 'react-bootstrap';
-import Question from './Question';
+import Question from './Question/Question';
 import DeleteConfirmationDialog from './DeleteDialog.js';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../services/userService.js';
-import { getUserSurveys } from '../services/surveyService.js';
+import { getUserSurveys, updateSurvey } from '../services/surveyService.js';
 import { db } from '../firebase';
 import { collection, getDocs, or } from 'firebase/firestore';
 
@@ -103,6 +103,11 @@ const SurveyView = () => {
     setSurveys(surveys.filter((survey) => survey.id !== surveyId));
   };
 
+  const surveyTagChange = (newTags) => {
+    setSurveys(surveys.map(survey => survey.id === selectedSurvey.id ? { ...survey, tags: newTags } : survey));
+    console.log(surveys);
+  }
+
   const openAnswerDialog = async (survey) => {
     setSelectedSurvey(survey);
     let fetchedResponses = await getSurveyResponses(survey.id);
@@ -129,7 +134,6 @@ const SurveyView = () => {
               <Col key={survey.id} md={6} lg={4}>
                 <Card className="h-100 shadow-sm">
                   <Card.Body>
-                    <Card.Title className="text-primary mb-2">{survey.title}</Card.Title>
                     <div className="d-flex justify-content-between align-items-center">
                       <Card.Title className="text-primary mb-0">{survey.title}</Card.Title>
                       <Button
@@ -156,7 +160,7 @@ const SurveyView = () => {
                     )}
                     <Card.Body>
                       {survey.questions.map((question, index) => (
-                        <Question key={index} question={question} onAnswerChange={() => { }} />
+                        <Question key={index} disabled={true} question={question} onAnswerChange={() => { }} />
                       ))}
                     </Card.Body>
 
@@ -208,6 +212,7 @@ const SurveyView = () => {
           }}
           handleSaveChanges={handleSaveChanges}
           onTitleChange={surveyTitleChange}
+          onTagChange={surveyTagChange}
         />
       )}
 

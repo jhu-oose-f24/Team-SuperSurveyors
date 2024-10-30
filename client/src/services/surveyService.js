@@ -122,3 +122,11 @@ export const fetchSurveyBasedOnTag = async () => {
         console.error("Error fetching tagged survey recommendation: ", error);
     }
 };
+
+export const updateSurvey = async (surveyId, updatedSurvey) => {
+    try {
+        await setDoc(doc(db, 'surveys', surveyId), updatedSurvey);
+    } catch (error) {
+        console.error('Error updating survey:', error);
+    }
+};

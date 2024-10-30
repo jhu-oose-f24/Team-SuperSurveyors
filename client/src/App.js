@@ -11,6 +11,7 @@ import SurveyView from "./components/SurveyView";
 import UserView from "./components/UserView";
 import AnswerSurvey from "./components/answerSurvey";
 import Onboarding from "./components/Onboarding"; // Import the Onboarding component
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App = () => {
   return (
@@ -19,7 +20,7 @@ const App = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        
+
         {/* Add the Onboarding route with user ID */}
         <Route path="/onboarding/:userId" element={<Onboarding />} />
 

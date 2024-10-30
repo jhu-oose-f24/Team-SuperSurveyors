@@ -1,11 +1,28 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import EditableQuestion from './Question/EditableQuestion';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import 'use-bootstrap-tag/dist/use-bootstrap-tag.css'
+import UseBootstrapTag from 'use-bootstrap-tag'
+
 
 const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSaveChanges, onTitleChange }) => {
 
     const [currentTitle, setCurrentTitle] = useState(survey.title);
+    const [currentTags, setCurrentTags] = useState(survey.tags);
+    const onTagChange = (tags) => {
+        survey.tags = tags;
+    }
+    const tagRef = useRef(null);
+    const componentRef = useRef(null);
+
+    useEffect(() => {
+        if (tagRef.current) {
+            componentRef.current = new UseBootstrapTag(tagRef.current);
+        }
+    });
+
+
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
@@ -49,11 +66,30 @@ const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSa
                             value={currentTitle}
                             onChange={(e) => handleTitleChange(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            onBlur={() => { }}
+                            onBlur={() => {
+                            }}
                         />
                     </Form.Group>
                 </Form>
             </Modal.Body>
+            <Modal.Body>
+                <Form>
+                    <Form.Group controlId="tags" className="mt-3">
+                        <Form.Label>Tags</Form.Label>
+                        <Form.Control
+                            type="text"
+                            placeholder="Enter tags"
+                            ref={tagRef}
+                            defaultValue={survey.tags}
+                            onKeyDown={handleKeyDown}
+                        />
+                    </Form.Group>
+                </Form>
+            </Modal.Body>
+
+
+
+
 
             <Modal.Body>
                 <Form>
@@ -73,7 +109,10 @@ const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSa
                 }}>
                     Cancel
                 </Button>
-                <Button variant="primary" onClick={() => { handleSaveChanges(survey.id) }}>
+                <Button variant="primary" onClick={() => {
+                    onTagChange(componentRef.current.getValues());
+                    handleSaveChanges(survey.id)
+                }}>
                     Save Changes
                 </Button>
             </Modal.Footer>

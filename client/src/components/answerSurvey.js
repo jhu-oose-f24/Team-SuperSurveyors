@@ -3,7 +3,7 @@ import { Form, Button, Toast } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { doc, runTransaction, setDoc, getDoc, deleteDoc, collection, query, where, getDocs, documentId } from 'firebase/firestore';
 import { db } from '../firebase';
-import Question from './Question';
+import Question from './Question/Question';
 import { getRandomSurvey } from '../services/surveyService';
 import { getAuth } from 'firebase/auth';
 import {

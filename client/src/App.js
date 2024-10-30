@@ -11,7 +11,7 @@ import SurveyView from "./components/SurveyView";
 import UserView from "./components/UserView";
 import AnswerSurvey from "./components/answerSurvey";
 import Onboarding from "./components/Onboarding"; // Import the Onboarding component
-
+import TrendingView from "./components/TrendingView";
 const App = () => {
   return (
     <Router>
@@ -30,6 +30,7 @@ const App = () => {
           <Route path="/view" element={<SurveyView />} />
           <Route path="/profile" element={<UserView />} />
           <Route path="/answer" element={<AnswerSurvey />} />
+          <Route path="/trending" element={<TrendingView />} />
         </Route>
       </Routes>
     </Router>

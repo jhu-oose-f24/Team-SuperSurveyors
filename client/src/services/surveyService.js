@@ -9,7 +9,7 @@ const db = getFirestore();
 const pq = new PriorityQueue((s1, s2) => {
     if (s1[0] > s2[0]) {
         return 1;
-    } else if (s1[0] == s2[0]) {
+    } else if (s1[0] === s2[0]) {
         return 0;
     }
     return -1;
@@ -34,6 +34,9 @@ export const getUserSurveys = async () => {
         const userSnapshot = await getDocs(userQ);
         const surveys = userSnapshot.docs[0].data().surveys;
 
+        if (surveys.length < 1) {
+            return;
+        }
         const q = query(collection(db, "surveys"), where(documentId(), 'in', surveys));
         const querySnapshot = await getDocs(q);
         const surveysData = querySnapshot.docs.map((doc) => ({
@@ -56,7 +59,13 @@ export const getRandomSurvey = async () => {
         const userSnapshot = await getDocs(userQ);
         const surveys = userSnapshot.docs[0].data().surveys;
 
-        const surveyQuery = query(collection(db, "surveys"), where(documentId(), 'not-in', surveys));
+        let surveyQuery;
+        if (surveys.length) {
+            surveyQuery = query(collection(db, "surveys"), where(documentId(), 'not-in', surveys));
+        } else {
+            surveyQuery = query(collection(db, "surveys"));
+        }
+
         const surveySnapshot = await getDocs(surveyQuery);
 
         // Filter out some of the surveys with no questions or title

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Form } from 'react-bootstrap';
 
-const Question = ({ question, onAnswerChange, disabled, showTitle = true }) => {
+const Question = ({ question, onAnswerChange, value, disabled = false, showTitle = true }) => {
     const handleChange = (e) => {
         const value = question.type === 'checkbox'
             ? [...e.target.parentNode.querySelectorAll('input[type=checkbox]:checked')].map(input => input.value)
@@ -20,6 +20,7 @@ const Question = ({ question, onAnswerChange, disabled, showTitle = true }) => {
                     placeholder="Your answer"
                     onChange={handleChange}
                     disabled={disabled}
+                    value={value}
                 />
             )}
             {question.type === 'radio' && (
@@ -35,6 +36,7 @@ const Question = ({ question, onAnswerChange, disabled, showTitle = true }) => {
                             value={option}
                             onChange={handleChange}
                             disabled={disabled}
+                            checked={value === option}
                         />
                     ))}
                 </div>
@@ -51,6 +53,8 @@ const Question = ({ question, onAnswerChange, disabled, showTitle = true }) => {
                             value={option}
                             onChange={handleChange}
                             disabled={disabled}
+                            checked={Array.isArray(value) && value.includes(option)}
+
                         />
                     ))}
                 </div>

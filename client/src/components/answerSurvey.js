@@ -85,10 +85,12 @@ const Survey = () => {
 
             let surveyInfo;
             if (userOwnedSurveys.length > 0) {
+                console.log("getting surveys that you didn't create");
                 surveyInfo = query(
                     collection(db, 'surveys'),
                     where(documentId(), 'not-in', userOwnedSurveys));
             } else {
+                console.log("getting all surveys");
                 surveyInfo = query(collection(db, 'surveys'));
             }
 
@@ -139,8 +141,9 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
                     setAnswers({});
                     surveyData = await getRandomSurvey();
                 } else {
-                    console.log("recommended is empty!");
-                    surveyData = pq.dequeue()[1];
+                    console.log("getting recommended survey!");
+                    setAnswers({});
+                    surveyData = pq.dequeue();
                 }
             }
         } else {
@@ -149,14 +152,18 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
                 setAnswers({});
                 surveyData = await getRandomSurvey();
             } else {
-                console.log("recommended is empty!");
-                surveyData = pq.dequeue()[1];
+                console.log("getting recommended survey!");
+                setAnswers({});
+                surveyData = pq.dequeue();
             }
         }
     } else {
 // If user ignore unfinished questionnaires, load random questionnaires directly
         setAnswers({});
         surveyData = await getRandomSurvey();
+    }
+    if (surveyData == null) {
+        return;
     }
 
     setSurveyId(surveyData.id);

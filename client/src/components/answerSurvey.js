@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Form, Button, Toast } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { doc, runTransaction, setDoc, getDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -22,16 +22,16 @@ const Survey = () => {
 
     const auth = getAuth();
     //Get user uid
-    const getUserId = () => {
+    const getUserId = useCallback(() => {
         const user = auth.currentUser;
         if (user) {
             return user.uid;
         } else {
             throw new Error('User not logged in');
         }
-    };
+    }, [auth.currentUser]);
 
-    const fetchIncompleteSurvey = async () => {
+    const fetchIncompleteSurvey = useCallback(async () => {
         try {
             const userId = getUserId();
             const q = query(
@@ -54,55 +54,56 @@ const Survey = () => {
             console.error('Error fetching incomplete survey:', error);
             return null;
         }
-    };
-const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
-    setQuestions([]);
-    setLoading(true);
-    setSubmissionSuccess(false);
+    }, [getUserId]);
 
-    let surveyData;
+    const fetchSurveys = useCallback(async (ignoreIncompleteSurvey = false) => {
+        setQuestions([]);
+        setLoading(true);
+        setSubmissionSuccess(false);
 
-    if (!ignoreIncompleteSurvey) {
-        //check if there are any unfinished questionnaires
-        const incompleteSurvey = await fetchIncompleteSurvey();
+        let surveyData;
 
-        if (incompleteSurvey) {
-            // If there is an incomplete questionnaire, load it
-            const docRef = doc(db, 'surveys', incompleteSurvey.surveyId);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                surveyData = { id: docSnap.id, ...docSnap.data() };
-                setAnswers(incompleteSurvey.answers);
+        if (!ignoreIncompleteSurvey) {
+            //check if there are any unfinished questionnaires
+            const incompleteSurvey = await fetchIncompleteSurvey();
+
+            if (incompleteSurvey) {
+                // If there is an incomplete questionnaire, load it
+                const docRef = doc(db, 'surveys', incompleteSurvey.surveyId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    surveyData = { id: docSnap.id, ...docSnap.data() };
+                    setAnswers(incompleteSurvey.answers);
+                } else {
+                    console.error('Survey not found');
+                    //If the questionnaire is not found, load the random questionnaire
+                    setAnswers({});
+                    surveyData = await getRandomSurvey();
+                }
             } else {
-                console.error('Survey not found');
-                //If the questionnaire is not found, load the random questionnaire
+                // If there are no unfinished questionnaires, load random questionnaires
                 setAnswers({});
                 surveyData = await getRandomSurvey();
             }
         } else {
-            // If there are no unfinished questionnaires, load random questionnaires
+    // If user ignore unfinished questionnaires, load random questionnaires directly
             setAnswers({});
             surveyData = await getRandomSurvey();
         }
-    } else {
-// If user ignore unfinished questionnaires, load random questionnaires directly
-        setAnswers({});
-        surveyData = await getRandomSurvey();
-    }
 
-    setSurveyId(surveyData.id);
-    setSurveyTitle(surveyData.title);
+        setSurveyId(surveyData.id);
+        setSurveyTitle(surveyData.title);
 
-    // Assign IDs to questions based on their index
-    setQuestions(
-        surveyData.questions.map((question, index) => ({
-            ...question,
-            id: index.toString(),
-        }))
-    );
+        // Assign IDs to questions based on their index
+        setQuestions(
+            surveyData.questions.map((question, index) => ({
+                ...question,
+                id: index.toString(),
+            }))
+        );
 
-    setLoading(false);
-};
+        setLoading(false);
+    }, [fetchIncompleteSurvey]);
 
     const handleAnswerChange = (questionId, value) => {
         setAnswers((prevAnswers) => {
@@ -208,10 +209,10 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
 
     useEffect(() => {
         fetchSurveys();
-    }, []);
+    }, [fetchSurveys]);
 
     if (loading) {
-        return <div className="d-flex flex-column align-items-center mt-5">Loading up surveys</div>;
+        return <div className="d-flex flex-column align-items-center mt-5">Loading up a survey...</div>;
     } else if (submissionSuccess) {
         return (
             <div className="d-flex flex-column align-items-center mt-5">

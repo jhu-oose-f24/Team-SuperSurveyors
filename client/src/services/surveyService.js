@@ -37,7 +37,13 @@ export const getRandomSurvey = async () => {
         const userSnapshot = await getDocs(userQ);
         const surveys = userSnapshot.docs[0].data().surveys;
 
-        const surveyQuery = query(collection(db, "surveys"), where(documentId(), 'not-in', surveys));
+        let surveyQuery;
+        if (surveys.length) {
+            surveyQuery = query(collection(db, "surveys"), where(documentId(), 'not-in', surveys));
+        } else {
+            surveyQuery = query(collection(db, "surveys"));
+        }
+
         const surveySnapshot = await getDocs(surveyQuery);
 
         // Filter out some of the surveys with no questions or title

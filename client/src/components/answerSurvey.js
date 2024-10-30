@@ -3,12 +3,12 @@ import { Form, Button, Toast } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import Question from './Question';
+import Question from './Question/Question';
 import { getRandomSurvey } from '../services/surveyService';
 import { getAuth } from 'firebase/auth';
 import {
     PriorityQueue,
-  } from '@datastructures-js/priority-queue';
+} from '@datastructures-js/priority-queue';
 
 const Survey = () => {
     const [questions, setQuestions] = useState([]);
@@ -108,7 +108,7 @@ const Survey = () => {
                 }
                 let score = commonTags;
                 pq.enqueue((score, {
-                    id : child.id,
+                    id: child.id,
                     ...survey
                 }));
             })
@@ -166,8 +166,8 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
         return;
     }
 
-    setSurveyId(surveyData.id);
-    setSurveyTitle(surveyData.title);
+        setSurveyId(surveyData.id);
+        setSurveyTitle(surveyData.title);
 
         // Assign IDs to questions based on their index
         setQuestions(
@@ -311,9 +311,9 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
     return (
         <div className="d-flex flex-column align-items-center mt-5">
             <div>
-            <Button variant="secondary" type="submit" className="d-block mx-auto" onClick={() => fetchSurveys(true)}>
-                Not interested? Answer a different survey
-            </Button>
+                <Button variant="secondary" type="submit" className="d-block mx-auto" onClick={() => fetchSurveys(true)}>
+                    Not interested? Answer a different survey
+                </Button>
             </div>
             <br />
             <div className="w-100" style={{ maxWidth: '600px' }}>

@@ -1,8 +1,8 @@
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, getDocs, query, where, documentId } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, query, where, documentId, setDoc, doc } from 'firebase/firestore';
 import {
     PriorityQueue,
-  } from '@datastructures-js/priority-queue';
+} from '@datastructures-js/priority-queue';
 
 const auth = getAuth();
 const db = getFirestore();
@@ -42,13 +42,13 @@ export const getUserSurveys = async () => {
         const surveysData = querySnapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data()
-        }));    
+        }));
         // TODO: Sort by creation date
         return surveysData;
     } catch (error) {
         console.error("Error fetching the user's surveys:", error);
     }
-    
+
 };
 
 export const getRandomSurvey = async () => {
@@ -82,7 +82,7 @@ export const getRandomSurvey = async () => {
         // Choose a random survey to work with
         const randomIdx = Math.floor(Math.random() * surveysData.length);
         return surveysData[randomIdx];
-        
+
     } catch (error) {
         console.error('Error fetching surveys:', error);
     }
@@ -122,12 +122,20 @@ export const fetchSurveyBasedOnTag = async () => {
             }
             let score = commonTags;
             pq.enqueue((score, {
-                id : child.id,
+                id: child.id,
                 ...survey
             }));
         })
         return pq;
     } catch (error) {
         console.error("Error fetching tagged survey recommendation: ", error);
+    }
+};
+
+export const updateSurvey = async (surveyId, updatedSurvey) => {
+    try {
+        await setDoc(doc(db, 'surveys', surveyId), updatedSurvey);
+    } catch (error) {
+        console.error('Error updating survey:', error);
     }
 };

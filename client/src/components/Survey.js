@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, ListGroup } from 'react-bootstrap';
-import Question from './Question';
+import Question from './Question/Question';
 import { db } from '../firebase';
 import { collection, getDocs, addDoc, setDoc, doc } from 'firebase/firestore';
 import { addSurveyToUser } from '../services/userService';

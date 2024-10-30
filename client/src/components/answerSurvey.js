@@ -27,8 +27,6 @@ const Survey = () => {
         }
         return -1;
     });
-
-
     // Use navigate to redirect
     const navigate = useNavigate();
 
@@ -101,57 +99,70 @@ const Survey = () => {
                     }
                 }
                 let score = commonTags;
-                pq.enqueue((score, survey));
+                pq.enqueue((score, {
+                    id : child.id,
+                    ...survey
+                }));
             })
+            return pq;
         } catch (error) {
             console.error("Error fetching tagged survey recommendation: ", error);
         }
     };
 
-    fetchSurveyBasedOnTag();
-
 const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
     setQuestions([]);
     setLoading(true);
     setSubmissionSuccess(false);
-
     let surveyData;
-
-    if (!ignoreIncompleteSurvey) {
-        //check if there are any unfinished questionnaires
-        const incompleteSurvey = await fetchIncompleteSurvey();
-
-        if (incompleteSurvey) {
-            // If there is an incomplete questionnaire, load it
-            const docRef = doc(db, 'surveys', incompleteSurvey.surveyId);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                surveyData = { id: docSnap.id, ...docSnap.data() };
-                setAnswers(incompleteSurvey.answers);
-            } else {
-                console.error('Survey not found');
-                //If the questionnaire is not found, load the highest score questionaire
-                if (pq.isEmpty()) {
-                    setAnswers({});
-                    surveyData = await getRandomSurvey();
-                } else {
-                    surveyData = pq.dequeue()[1];
-                }
-            }
-        } else {
-            // If there are no unfinished questionnaires, load highesy score questionare
-            if (pq.isEmpty()) {
-                setAnswers({});
-                surveyData = await getRandomSurvey();
-            } else {
-                surveyData = pq.dequeue()[1];
-            }
-        }
-    } else {
-// If user ignore unfinished questionnaires, load random questionnaires directly
+    if (pq.isEmpty()) {
+        console.log("recommended pq is empty!");
         setAnswers({});
         surveyData = await getRandomSurvey();
+    } else {
+        console.log("getting recommended survey!");
+        setAnswers({});
+        surveyData = pq.dequeue();
+        console.log(surveyData);
     }
+
+//     if (!ignoreIncompleteSurvey) {
+//         //check if there are any unfinished questionnaires
+//         const incompleteSurvey = await fetchIncompleteSurvey();
+
+//         if (incompleteSurvey) {
+//             // If there is an incomplete questionnaire, load it
+//             const docRef = doc(db, 'surveys', incompleteSurvey.surveyId);
+//             const docSnap = await getDoc(docRef);
+//             if (docSnap.exists()) {
+//                 surveyData = { id: docSnap.id, ...docSnap.data() };
+//                 setAnswers(incompleteSurvey.answers);
+//             } else {
+//                 console.error('Survey not found');
+//                 //If the questionnaire is not found, load the highest score questionaire
+//                 if (pq.isEmpty()) {
+//                     setAnswers({});
+//                     surveyData = await getRandomSurvey();
+//                 } else {
+//                     console.log("recommended is empty!");
+//                     surveyData = pq.dequeue()[1];
+//                 }
+//             }
+//         } else {
+//             // If there are no unfinished questionnaires, load highest score questionare
+//             if (pq.isEmpty()) {
+//                 setAnswers({});
+//                 surveyData = await getRandomSurvey();
+//             } else {
+//                 console.log("recommended is empty!");
+//                 surveyData = pq.dequeue()[1];
+//             }
+//         }
+//     } else {
+// // If user ignore unfinished questionnaires, load random questionnaires directly
+//         setAnswers({});
+//         surveyData = await getRandomSurvey();
+//     }
 
     setSurveyId(surveyData.id);
     setSurveyTitle(surveyData.title);
@@ -270,7 +281,9 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
     };
 
     useEffect(() => {
-        fetchSurveys();
+        fetchSurveyBasedOnTag().then(() => {
+            fetchSurveys();
+        });
     }, []);
 
     if (loading) {

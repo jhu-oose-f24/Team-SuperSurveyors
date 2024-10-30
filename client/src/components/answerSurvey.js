@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Toast } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { doc, runTransaction, setDoc, getDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, runTransaction, setDoc, getDoc, deleteDoc, collection, query, where, getDocs, documentId } from 'firebase/firestore';
 import { db } from '../firebase';
 import Question from './Question';
 import { getRandomSurvey } from '../services/surveyService';
 import { getAuth } from 'firebase/auth';
+import {
+    PriorityQueue,
+  } from '@datastructures-js/priority-queue';
 
 const Survey = () => {
     const [questions, setQuestions] = useState([]);
@@ -16,6 +19,15 @@ const Survey = () => {
     const [submissionSuccess, setSubmissionSuccess] = useState(false);
     const [showFailure, setShowFailure] = useState(false);
     const [failureTxt, setFailureTxt] = useState('');
+    const pq = new PriorityQueue((s1, s2) => {
+        if (s1[0] > s2[0]) {
+            return 1;
+        } else if (s1[0] == s2[0]) {
+            return 0;
+        }
+        return -1;
+    });
+
 
     // Use navigate to redirect
     const navigate = useNavigate();
@@ -55,6 +67,52 @@ const Survey = () => {
             return null;
         }
     };
+
+    const fetchSurveyBasedOnTag = async () => {
+        try {
+            const userId = getUserId();
+            const userInfo = query(
+                collection(db, 'users'),
+                where(documentId(), '==', userId)
+            );
+            const userInfoSnapshot = await getDocs(userInfo);
+            let userOwnedSurveys = [];
+            let userTags = [];
+            userInfoSnapshot.forEach((child) => {
+                userOwnedSurveys = child.data().surveys;
+                if (child.data().tags) {
+                    userTags = child.data().tags;
+                }
+            });
+            const surveyInfo = query(
+                collection(db, 'surveys'),
+                where(documentId(), 'not-in', userOwnedSurveys)
+            );
+            const allSurveysSnapshot = await getDocs(surveyInfo);
+            allSurveysSnapshot.forEach((child) => {
+                let survey = child.data();
+                let commonTags = 0;
+                //if survey is tagged, calculate its score
+                if (survey.tags) {
+                    for (let i = 0; i < survey.tags.length; i++) {
+                        if (userTags.includes(survey.tags[i])) {
+                            commonTags = commonTags + 1;
+                        }
+                    }
+                }
+                let score = commonTags;
+                pq.enqueue((score, survey));
+            })
+        } catch (error) {
+            console.error("Error fetching tagged survey recommendation: ", error);
+        }
+        //fetch all serveys not made by user
+        //rank them based on tags (priority queue)
+        //return the first one
+    };
+
+    fetchSurveyBasedOnTag();
+
 const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
     setQuestions([]);
     setLoading(true);
@@ -76,13 +134,21 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
             } else {
                 console.error('Survey not found');
                 //If the questionnaire is not found, load the random questionnaire
-                setAnswers({});
-                surveyData = await getRandomSurvey();
+                if (pq.isEmpty()) {
+                    setAnswers({});
+                    surveyData = await getRandomSurvey();
+                } else {
+                    surveyData = pq.dequeue()[1];
+                }
             }
         } else {
-            // If there are no unfinished questionnaires, load random questionnaires
-            setAnswers({});
-            surveyData = await getRandomSurvey();
+            // If there are no unfinished questionnaires, load highesy score questionnaires
+            if (pq.isEmpty()) {
+                setAnswers({});
+                surveyData = await getRandomSurvey();
+            } else {
+                surveyData = pq.dequeue()[1];
+            }
         }
     } else {
 // If user ignore unfinished questionnaires, load random questionnaires directly

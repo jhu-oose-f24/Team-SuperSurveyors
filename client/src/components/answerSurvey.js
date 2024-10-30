@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Form, Button, Toast } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId } from 'firebase/firestore';
+import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import Question from './Question';
 import { getRandomSurvey } from '../services/surveyService';
@@ -121,54 +121,43 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
     setLoading(true);
     setSubmissionSuccess(false);
     let surveyData;
-    if (pq.isEmpty()) {
-        console.log("recommended pq is empty!");
+    if (!ignoreIncompleteSurvey) {
+        //check if there are any unfinished questionnaires
+        const incompleteSurvey = await fetchIncompleteSurvey();
+
+        if (incompleteSurvey) {
+            // If there is an incomplete questionnaire, load it
+            const docRef = doc(db, 'surveys', incompleteSurvey.surveyId);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                surveyData = { id: docSnap.id, ...docSnap.data() };
+                setAnswers(incompleteSurvey.answers);
+            } else {
+                console.error('Survey not found');
+                //If the questionnaire is not found, load the highest score questionaire
+                if (pq.isEmpty()) {
+                    setAnswers({});
+                    surveyData = await getRandomSurvey();
+                } else {
+                    console.log("recommended is empty!");
+                    surveyData = pq.dequeue()[1];
+                }
+            }
+        } else {
+            // If there are no unfinished questionnaires, load highest score questionare
+            if (pq.isEmpty()) {
+                setAnswers({});
+                surveyData = await getRandomSurvey();
+            } else {
+                console.log("recommended is empty!");
+                surveyData = pq.dequeue()[1];
+            }
+        }
+    } else {
+// If user ignore unfinished questionnaires, load random questionnaires directly
         setAnswers({});
         surveyData = await getRandomSurvey();
-    } else {
-        console.log("getting recommended survey!");
-        setAnswers({});
-        surveyData = pq.dequeue();
-        console.log(surveyData);
     }
-
-//     if (!ignoreIncompleteSurvey) {
-//         //check if there are any unfinished questionnaires
-//         const incompleteSurvey = await fetchIncompleteSurvey();
-
-//         if (incompleteSurvey) {
-//             // If there is an incomplete questionnaire, load it
-//             const docRef = doc(db, 'surveys', incompleteSurvey.surveyId);
-//             const docSnap = await getDoc(docRef);
-//             if (docSnap.exists()) {
-//                 surveyData = { id: docSnap.id, ...docSnap.data() };
-//                 setAnswers(incompleteSurvey.answers);
-//             } else {
-//                 console.error('Survey not found');
-//                 //If the questionnaire is not found, load the highest score questionaire
-//                 if (pq.isEmpty()) {
-//                     setAnswers({});
-//                     surveyData = await getRandomSurvey();
-//                 } else {
-//                     console.log("recommended is empty!");
-//                     surveyData = pq.dequeue()[1];
-//                 }
-//             }
-//         } else {
-//             // If there are no unfinished questionnaires, load highest score questionare
-//             if (pq.isEmpty()) {
-//                 setAnswers({});
-//                 surveyData = await getRandomSurvey();
-//             } else {
-//                 console.log("recommended is empty!");
-//                 surveyData = pq.dequeue()[1];
-//             }
-//         }
-//     } else {
-// // If user ignore unfinished questionnaires, load random questionnaires directly
-//         setAnswers({});
-//         surveyData = await getRandomSurvey();
-//     }
 
     setSurveyId(surveyData.id);
     setSurveyTitle(surveyData.title);

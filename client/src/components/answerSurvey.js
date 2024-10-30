@@ -106,9 +106,6 @@ const Survey = () => {
         } catch (error) {
             console.error("Error fetching tagged survey recommendation: ", error);
         }
-        //fetch all serveys not made by user
-        //rank them based on tags (priority queue)
-        //return the first one
     };
 
     fetchSurveyBasedOnTag();
@@ -133,7 +130,7 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
                 setAnswers(incompleteSurvey.answers);
             } else {
                 console.error('Survey not found');
-                //If the questionnaire is not found, load the random questionnaire
+                //If the questionnaire is not found, load the highest score questionaire
                 if (pq.isEmpty()) {
                     setAnswers({});
                     surveyData = await getRandomSurvey();
@@ -142,7 +139,7 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
                 }
             }
         } else {
-            // If there are no unfinished questionnaires, load highesy score questionnaires
+            // If there are no unfinished questionnaires, load highesy score questionare
             if (pq.isEmpty()) {
                 setAnswers({});
                 surveyData = await getRandomSurvey();

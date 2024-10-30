@@ -34,6 +34,9 @@ export const getUserSurveys = async () => {
         const userSnapshot = await getDocs(userQ);
         const surveys = userSnapshot.docs[0].data().surveys;
 
+        if (surveys.length < 1) {
+            return;
+        }
         const q = query(collection(db, "surveys"), where(documentId(), 'in', surveys));
         const querySnapshot = await getDocs(q);
         const surveysData = querySnapshot.docs.map((doc) => ({

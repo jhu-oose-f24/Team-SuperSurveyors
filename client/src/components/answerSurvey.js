@@ -84,7 +84,7 @@ const Survey = () => {
             });
 
             let surveyInfo;
-            if (userOwnedSurveys.length) {
+            if (userOwnedSurveys.length > 0) {
                 surveyInfo = query(
                     collection(db, 'surveys'),
                     where(documentId(), 'not-in', userOwnedSurveys));

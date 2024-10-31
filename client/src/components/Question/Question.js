@@ -2,7 +2,7 @@
 import React from 'react';
 import { Form } from 'react-bootstrap';
 
-const Question = ({ question, onAnswerChange,value }) => {
+const Question = ({ question, onAnswerChange, value, disabled = false, showTitle = true }) => {
     const handleChange = (e) => {
         const value = question.type === 'checkbox'
             ? [...e.target.parentNode.querySelectorAll('input[type=checkbox]:checked')].map(input => input.value)
@@ -13,12 +13,13 @@ const Question = ({ question, onAnswerChange,value }) => {
 
     return (
         <div className="mb-3">
-            <p>{question.text}</p>
+            {showTitle && <Form.Label>{question.text}</Form.Label>}
             {question.type === 'text' && (
                 <Form.Control
                     type="text"
                     placeholder="Your answer"
                     onChange={handleChange}
+                    disabled={disabled}
                     value={value}
                 />
             )}
@@ -26,6 +27,7 @@ const Question = ({ question, onAnswerChange,value }) => {
                 <div>
                     {question.options.map((option, index) => (
                         <Form.Check
+
                             key={index}
                             type="radio"
                             label={option}
@@ -33,6 +35,7 @@ const Question = ({ question, onAnswerChange,value }) => {
                             id={`formHorizontalRadios${index}`}
                             value={option}
                             onChange={handleChange}
+                            disabled={disabled}
                             checked={value === option}
                         />
                     ))}
@@ -49,6 +52,7 @@ const Question = ({ question, onAnswerChange,value }) => {
                             id={`formHorizontalCheck${index}`}
                             value={option}
                             onChange={handleChange}
+                            disabled={disabled}
                             checked={Array.isArray(value) && value.includes(option)}
 
                         />

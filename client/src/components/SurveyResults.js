@@ -6,6 +6,7 @@ import { Pie } from 'react-chartjs-2';
 import { Button, Container, Row, Col } from 'react-bootstrap';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 ChartJS.register(ArcElement, Tooltip, Legend);
+
 const SurveyResults = () => {
     const { surveyId } = useParams();
     const [responses, setResponses] = useState([]);
@@ -49,7 +50,30 @@ const SurveyResults = () => {
                     {loading ? (
                         <div className="text-center">Loading responses...</div>
                     ) : (
-                        <Pie data={chartData} />
+                        <>
+                            <div style={{ width: '70%', margin: '0 auto' }}>
+                                <Pie data={chartData} options={{ maintainAspectRatio: false }} />
+                            </div>
+                            <div className="mt-4">
+                                <h5>Response Details:</h5>
+                                <ul>
+                                    {Object.entries(responseCounts).map(([response, count]) => (
+                                        <li key={response}>
+                                            {response}: {count} responses
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <div className="mt-4">
+                                <h5>Individual Responses:</h5>
+                                <ul>
+                                    {responses.map((response, index) => (
+                                        <li key={index}>{response}</li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                        </>
                     )}
                     <Button variant="primary" className="mt-4" onClick={() => navigate(-1)}>
                         Back to Surveys

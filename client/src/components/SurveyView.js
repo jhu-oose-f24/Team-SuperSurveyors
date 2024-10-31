@@ -12,6 +12,7 @@ import { collection, getDocs, or } from 'firebase/firestore';
 import { FaEdit } from 'react-icons/fa';
 import EditQuestionsDialog from './EditQuestionsDialog.js';
 
+
 export const getSurveyResponses = async (surveyId) => {
   const responsesRef = collection(db, 'surveyResults', surveyId, 'questions');
   const querySnapshot = await getDocs(responsesRef);
@@ -24,6 +25,8 @@ export const getSurveyResponses = async (surveyId) => {
 
   return responses;
 };
+
+
 
 const SurveyView = () => {
   const [surveys, setSurveys] = useState([]);
@@ -102,7 +105,7 @@ const SurveyView = () => {
   const handleSurveyDelete = (surveyId) => {
     setSurveys(surveys.filter((survey) => survey.id !== surveyId));
   };
-
+  
   const surveyTagChange = (newTags) => {
     setSurveys(surveys.map(survey => survey.id === selectedSurvey.id ? { ...survey, tags: newTags } : survey));
     console.log(surveys);
@@ -251,4 +254,4 @@ const SurveyView = () => {
   );
 };
 
-export default SurveyView;
+export default SurveyView; 

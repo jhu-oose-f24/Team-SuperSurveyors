@@ -111,12 +111,9 @@ const SurveyView = () => {
     console.log(surveys);
   }
 
-  const openAnswerDialog = async (survey) => {
-    setSelectedSurvey(survey);
-    let fetchedResponses = await getSurveyResponses(survey.id);
-    setResponses(fetchedResponses);
-    setShowResponseModal(true);
-  };
+  const openAnswerDialog = (survey) => {
+    navigate(`/survey-results/${survey.id}`);
+  };  
 
   const closeResponseModal = () => {
     setShowResponseModal(false);

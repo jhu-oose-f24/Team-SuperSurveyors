@@ -1,34 +1,70 @@
-# Team-SuperSurveyors
+# Getting Started with Create React App
 
-## Team Members (Github Username)
-* Larry Cai (larrythelog)
-* Jianwei Chen (jchen362)
-* Mia Jin (zhengyue4499)
-* Noah Park (noahpark101)
-* Xin Tan (tanx3036)
-* Jiayi Zhang (jiayizhang-evelynn)
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Instructions
-`npm` is required to run this web app.
-1. Go into `client` folder, run `npm install`
-1. Go into `server` folder, run `npm install`
-1. Go into the root folder, run `npm install`, then `npm run start`. This will start up both the front and back end.
+## Available Scripts
 
-## About
-Our app is a survey platform where people will be able to create their own serveys as well as do other people's surveys. We would like to foster an environment where users are incentivized to try other people's surveys so that their own surveys are advertised to other people. We'd also like to increase convenience of exposing these surveys to people around the world so that the survey creators can obtain all sorts of perspectives and audiences. This is not possible in traditional methods and mainstream survey apps.
+In the project directory, you can run:
 
-## Iteration 1 Features
-* Users can create a survey with a collection of different types of questions (will create unique user functionality and authentication in future iteration)
-* Users can view all the surveys created
-* Basic Firebase Firestore setup (works in the frontend, will be put in the backend in a future iteration.)
+### `npm start`
 
-## Iteration 2 Features
-* User authentication implemented. Entire backbone of `user` document storage in Firebase along with helper functions for Firebase related actions such as viewing survey results and  updating profile information.
-* Profile page implemented. We acknowledge the recommendation to do this feature in a later iteration, but we strongly believed that this functionality needed to be developed for the future need-to-have features (data visualization, recommendation algorithm, etc.). We also consulted with Yoohyuk beforehand, and he agreed that our iteration could be this "setting up" since all the other crucial features required this set up beforehand.
-* Basic survey results dialog screen, providing the survey creator with all the responses made to their survey.
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-## Iteration 3 Features
-* Tagging feature implemented. This was applied to both users and surveys. For the time being, it is a fixed set of categories that can be selected. We plan on adding more or making it dynamic.
-* User onboarding page implemented. This makes use of the tagging feature and guides the user on the kinds of surveys they want to answer. 
-* Users can now edit their own previously created surveys, and see results of responses.
-* The survey answering feature has received a lot of improvements. Fetching a survey is now randomized, but also makes use of a priority queue of surveys that gives surveys a calculated score. 
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
+
+### `npm test`
+
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+
+### `npm run build`
+
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
+
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
+
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+
+### `npm run eject`
+
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+
+## Learn More
+
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+
+To learn React, check out the [React documentation](https://reactjs.org/).
+
+### Code Splitting
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+
+### Analyzing the Bundle Size
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+
+### Making a Progressive Web App
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+
+### Advanced Configuration
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+
+### Deployment
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+
+### `npm run build` fails to minify
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)

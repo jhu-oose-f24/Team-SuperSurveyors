@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import PrivateRoute from "./routes/PrivateRoutes";
 
 // Imports of developed components
@@ -33,7 +33,7 @@ const App = () => {
           <Route path="/view" element={<SurveyView />} />
           <Route path="/profile" element={<UserView />} />
           <Route path="/answer" element={<AnswerSurvey />} />
-          
+
           <Route path="/survey-results/:surveyId" element={<SurveyResults />} />
         </Route>
       </Routes>

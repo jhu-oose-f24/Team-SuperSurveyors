@@ -85,12 +85,10 @@ const Survey = () => {
 
             let surveyInfo;
             if (userOwnedSurveys.length > 0) {
-                console.log("getting surveys that you didn't create");
                 surveyInfo = query(
                     collection(db, 'surveys'),
                     where(documentId(), 'not-in', userOwnedSurveys));
             } else {
-                console.log("getting all surveys");
                 surveyInfo = query(collection(db, 'surveys'));
             }
 
@@ -118,53 +116,51 @@ const Survey = () => {
         }
     };
 
-const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
-    setQuestions([]);
-    setLoading(true);
-    setSubmissionSuccess(false);
-    let surveyData;
-    if (!ignoreIncompleteSurvey) {
-        //check if there are any unfinished questionnaires
-        const incompleteSurvey = await fetchIncompleteSurvey();
+    const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
+        setQuestions([]);
+        setLoading(true);
+        setSubmissionSuccess(false);
+        let surveyData;
+        if (!ignoreIncompleteSurvey) {
+            //check if there are any unfinished questionnaires
+            const incompleteSurvey = await fetchIncompleteSurvey();
 
-        if (incompleteSurvey) {
-            // If there is an incomplete questionnaire, load it
-            const docRef = doc(db, 'surveys', incompleteSurvey.surveyId);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                surveyData = { id: docSnap.id, ...docSnap.data() };
-                setAnswers(incompleteSurvey.answers);
+            if (incompleteSurvey) {
+                // If there is an incomplete questionnaire, load it
+                const docRef = doc(db, 'surveys', incompleteSurvey.surveyId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    surveyData = { id: docSnap.id, ...docSnap.data() };
+                    setAnswers(incompleteSurvey.answers);
+                } else {
+                    console.error('Survey not found');
+                    //If the questionnaire is not found, load the highest score questionaire
+                    if (pq.isEmpty()) {
+                        setAnswers({});
+                        surveyData = await getRandomSurvey();
+                    } else {
+                        setAnswers({});
+                        surveyData = pq.dequeue();
+                    }
+                }
             } else {
-                console.error('Survey not found');
-                //If the questionnaire is not found, load the highest score questionaire
+                // If there are no unfinished questionnaires, load highest score questionare
                 if (pq.isEmpty()) {
                     setAnswers({});
                     surveyData = await getRandomSurvey();
                 } else {
-                    console.log("getting recommended survey!");
                     setAnswers({});
                     surveyData = pq.dequeue();
                 }
             }
         } else {
-            // If there are no unfinished questionnaires, load highest score questionare
-            if (pq.isEmpty()) {
-                setAnswers({});
-                surveyData = await getRandomSurvey();
-            } else {
-                console.log("getting recommended survey!");
-                setAnswers({});
-                surveyData = pq.dequeue();
-            }
+            // If user ignore unfinished questionnaires, load random questionnaires directly
+            setAnswers({});
+            surveyData = await getRandomSurvey();
         }
-    } else {
-// If user ignore unfinished questionnaires, load random questionnaires directly
-        setAnswers({});
-        surveyData = await getRandomSurvey();
-    }
-    if (surveyData == null) {
-        return;
-    }
+        if (surveyData == null) {
+            return;
+        }
 
         setSurveyId(surveyData.id);
         setSurveyTitle(surveyData.title);
@@ -214,8 +210,6 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
 
         // Check all answers before starting the transaction
         const answeredQuestions = Object.values(answers);
-        console.log(questions);
-        console.log(answeredQuestions);
         if (answeredQuestions.length < questions.length) {
             setFailureTxt('Please complete all questions before submitting');
             setShowFailure(true);
@@ -274,6 +268,22 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
             // deleted complete answer from incomplete database
             const userId = getUserId();
             await deleteDoc(doc(db, 'incompleteAnswers', `${surveyId}_${userId}`));
+
+            // add survey id to user's answered survey list
+            const userRef = doc(db, 'users', userId);
+            await runTransaction(db, async (transaction) => {
+                const userDoc = await transaction.get(userRef);
+                let answeredSurveys = [];
+                if (userDoc.exists()) {
+                    answeredSurveys = userDoc.data().answeredSurveys || [];
+                }
+
+                answeredSurveys.push(surveyId);
+
+                transaction.update(userRef, {
+                    answeredSurveys: answeredSurveys,
+                });
+            });
 
             setSubmissionSuccess(true);
         } catch (error) {

@@ -73,6 +73,14 @@ export const getRandomSurvey = async () => {
             return doc.data().title.length && doc.data().questions.length;
         });
 
+        //Filter out the surveys that the user has already taken
+        const answered_surveys = userSnapshot.docs[0].data().answeredSurveys;
+        surveysData = surveysData.filter((doc) => {
+            return !answered_surveys.includes(doc.id);
+        });
+
+
+
         // Add the id field to the surveys
         surveysData = surveysData.map((doc) => ({
             id: doc.id,

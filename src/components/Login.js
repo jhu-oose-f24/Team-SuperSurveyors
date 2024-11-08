@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import Toast from 'react-bootstrap/Toast';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../services/userService';
 import '../styles/signup.css';
+import { getAuth } from 'firebase/auth';
+
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -12,7 +14,15 @@ const Login = () => {
     const [showFailure, setShowFailure] = useState(false);
     const [failureMsg, setFailureMsg] = useState("");
     const navigate = useNavigate();
-    
+
+    useEffect(() => {
+        const auth = getAuth();
+        if (auth.currentUser) {
+            navigate('/');
+        }
+
+    }, []);
+
     const handleSignUp = async (e) => {
         e.preventDefault();
 

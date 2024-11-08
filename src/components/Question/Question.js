@@ -1,13 +1,25 @@
 // src/components/Question.js
-import React from 'react';
+import { React, useState } from 'react';
 import { Form } from 'react-bootstrap';
 
-const Question = ({ question, onAnswerChange, value, disabled = false, showTitle = true }) => {
-    const handleChange = (e) => {
-        const value = question.type === 'checkbox'
-            ? [...e.target.parentNode.querySelectorAll('input[type=checkbox]:checked')].map(input => input.value)
-            : e.target.value;
 
+const Question = ({ question, onAnswerChange, value, disabled = false, showTitle = true }) => {
+    const [multipleValuesState, setCheckbox] = useState(value);
+
+
+
+    const handleChange = (e) => {
+        if (question.type === 'checkbox') {
+            const { value } = e.target;
+            const newValues = multipleValuesState.includes(value)
+                ? multipleValuesState.filter((v) => v !== value)
+                : [...multipleValuesState, value];
+            setCheckbox(newValues);
+            onAnswerChange(question.id, newValues);
+            return;
+        }
+
+        const { value } = e.target;
         onAnswerChange(question.id, value);
     };
 
@@ -16,6 +28,7 @@ const Question = ({ question, onAnswerChange, value, disabled = false, showTitle
             {showTitle && <Form.Label>{question.text}</Form.Label>}
             {question.type === 'text' && (
                 <Form.Control
+                    id={question.id}
                     type="text"
                     placeholder="Your answer"
                     onChange={handleChange}
@@ -32,7 +45,7 @@ const Question = ({ question, onAnswerChange, value, disabled = false, showTitle
                             type="radio"
                             label={option}
                             name={`formHorizontalRadios-${question.id}`}
-                            id={`formHorizontalRadios${index}`}
+                            id={`formHorizontalRadios-${question.id}-${index}`}
                             value={option}
                             onChange={handleChange}
                             disabled={disabled}
@@ -49,12 +62,11 @@ const Question = ({ question, onAnswerChange, value, disabled = false, showTitle
                             type="checkbox"
                             label={option}
                             name={`formHorizontalCheck-${question.id}`}
-                            id={`formHorizontalCheck${index}`}
+                            id={`formHorizontalCheck-${question.id}-${index}`}
                             value={option}
                             onChange={handleChange}
                             disabled={disabled}
-                            checked={Array.isArray(value) && value.includes(option)}
-
+                            checked={value.includes(option)}
                         />
                     ))}
                 </div>

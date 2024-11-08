@@ -3,13 +3,18 @@ import React from 'react'
 import { useAuthState } from 'react-firebase-hooks/auth'
 import { Navigate, Outlet } from 'react-router-dom'
 import { getAuth } from 'firebase/auth'
-import { Audio } from 'react-loader-spinner'
+import { ClipLoader as Audio } from 'react-spinners'
+import { Container } from 'react-bootstrap'
 
 const PrivateRoute = ({ children }) => {
     const [user, loading, error] = useAuthState(getAuth())
 
     if (loading) {
-        return <Audio type="Audio" color="#00BFFF" height={80} width={80} />
+        return (
+            <Container className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+                <Audio color='#123abc' loading={loading} size={150} />
+            </Container>
+        )
     }
 
     if (error) {

@@ -9,6 +9,8 @@ import { getAuth } from 'firebase/auth';
 import {
     PriorityQueue,
 } from '@datastructures-js/priority-queue';
+import { ClipLoader as Audio } from 'react-spinners';
+import { Container } from 'react-bootstrap';
 
 const Survey = () => {
     const [questions, setQuestions] = useState([]);
@@ -181,6 +183,15 @@ const Survey = () => {
     };
 
     const handleAnswerChange = (questionId, value) => {
+        //change value to array if question type is checkbox 
+        if (Array.isArray(value)) {
+            value = value.map((val) => val); // Copy the array
+        }
+
+
+
+
+
         setAnswers((prevAnswers) => {
             const newAnswers = {
                 ...prevAnswers,
@@ -286,7 +297,11 @@ const Survey = () => {
     }, []);
 
     if (loading) {
-        return <div className="d-flex flex-column align-items-center mt-5">Loading up a survey...</div>;
+        return (
+            <Container className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+                <Audio color='#123abc' loading={loading} size={150} />
+            </Container>
+        );
     } else if (submissionSuccess) {
         return (
             <div className="d-flex flex-column align-items-center mt-5">

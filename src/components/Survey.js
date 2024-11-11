@@ -379,21 +379,60 @@ const SurveyForm = () => {
                     </Paper>
                 )}
 
-                <Button
-                    variant="contained"
-                    size="large"
-                    fullWidth
-                    onClick={handleSubmit}
-                    endIcon={<SendIcon />}
-                    sx={{
-                        py: 2,
-                        background: 'linear-gradient(45deg, #2c2c2c 30%, #4f4f4f 90%)',
-                        boxShadow: '0 3px 5px 2px rgba(44, 44, 44, .3)',
-                        '&:hover': { 
-                            background: 'linear-gradient(45deg, #4f4f4f 30%, #2c2c2c 90%)',
-                        }
-                    }}
-                >
+                <Form.Group controlId="tags" className="mt-3">
+                    <Form.Label>Select Tags</Form.Label>
+                    <Form.Control as="select" onChange={handleTagSelection}>
+                        <option value="">-- Select a Tag --</option>
+                        {tags.map((tag) => (
+                            <option key={tag} value={tag}>
+                                {tag}
+                            </option>
+                        ))}
+                    </Form.Control>
+                    <ul className="mt-2">
+                        {selectedTags.map((tag, index) => (
+                            <li key={index}>
+                                {tag}{' '}
+                                <Button
+                                    variant="danger"
+                                    size="sm"
+                                    onClick={() => {
+                                        const newTags = selectedTags.filter(t => t !== tag);
+                                        setSelectedTags(newTags);
+                                    }}
+                                >
+                                    Remove
+                                </Button>
+                            </li>
+                        ))}
+                    </ul>
+                </Form.Group>
+
+                <Button className="mt-3" onClick={addQuestion}>
+                    Add Question
+                </Button>
+
+                <ListGroup className="mt-3">
+                    {questions.map((q, index) => (
+                        <ListGroup.Item key={index}>
+                            <Question question={q} onAnswerChange={() => { }} disabled={true} />
+                            <Button
+                                variant="danger"
+                                size="sm"
+                                className="mt-2"
+                                onClick={() => {
+                                    const newQuestions = [...questions];
+                                    newQuestions.splice(index, 1);
+                                    setQuestions(newQuestions);
+                                }}
+                            >
+                                Remove Question
+                            </Button>
+                        </ListGroup.Item>
+                    ))}
+                </ListGroup>
+
+                <Button variant="success" className="mt-3" onClick={handleSubmit}>
                     Submit Survey
                 </Button>
             </Container>

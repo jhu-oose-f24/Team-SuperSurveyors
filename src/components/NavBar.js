@@ -43,6 +43,9 @@ const NavBar = () => {
                             <Nav.Link as={Link} to="/view">
                                 View Surveys
                             </Nav.Link>
+                            <Nav.Link as={Link} to="/trending">
+                                Trending Surveys
+                            </Nav.Link>
                             <Nav.Link as={Link} to="/create">
                                 Create Survey
                             </Nav.Link>

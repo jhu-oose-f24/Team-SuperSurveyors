@@ -14,6 +14,7 @@ import Onboarding from "./components/Onboarding"; // Import the Onboarding compo
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import SurveyResults from './components/SurveyResults';
+import TrendingView from "./components/TrendingView";
 
 const App = () => {
   return (
@@ -33,8 +34,8 @@ const App = () => {
           <Route path="/view" element={<SurveyView />} />
           <Route path="/profile" element={<UserView />} />
           <Route path="/answer" element={<AnswerSurvey />} />
-
           <Route path="/survey-results/:surveyId" element={<SurveyResults />} />
+          <Route path="/trending" element={<TrendingView />} />
         </Route>
       </Routes>
     </Router>

@@ -170,31 +170,89 @@ const SurveyForm = () => {
                     </ul>
                 </Form.Group>
 
-                <Button className="mt-3" onClick={addQuestion}>
-                    Add Question
-                </Button>
+                        <Button
+                            variant="outlined"
+                            onClick={addQuestion}
+                            startIcon={<AddCircleIcon />}
+                            sx={{
+                                py: 1.5,
+                                borderColor: 'primary.main',
+                                color: 'primary.main',
+                                '&:hover': { 
+                                    backgroundColor: 'action.hover',
+                                    borderColor: 'primary.light'
+                                }
+                            }}
+                        >
+                            Add Question
+                        </Button>
+                    </Stack>
+                </Paper>
 
-                <ListGroup className="mt-3">
-                    {questions.map((q, index) => (
-                        <ListGroup.Item key={index}>
-                            <Question question={q} />
-                            <Button
-                                variant="danger"
-                                size="sm"
-                                className="mt-2"
-                                onClick={() => {
-                                    const newQuestions = [...questions];
-                                    newQuestions.splice(index, 1);
-                                    setQuestions(newQuestions);
-                                }}
-                            >
-                                Remove Question
-                            </Button>
-                        </ListGroup.Item>
-                    ))}
-                </ListGroup>
+                {questions.length > 0 && (
+                    <Paper 
+                        elevation={0} 
+                        sx={{ 
+                            p: 4, 
+                            mb: 4,
+                            border: '1px solid',
+                            borderColor: 'grey.200'
+                        }}
+                    >
+                        <Typography 
+                            variant="h6" 
+                            gutterBottom
+                            sx={{ fontWeight: 600, color: 'text.primary' }}
+                        >
+                            Questions Added
+                        </Typography>
+                        <List>
+                            {questions.map((q, index) => (
+                                <ListItem
+                                    key={index}
+                                    sx={{ 
+                                        display: 'block', 
+                                        mb: 2,
+                                        bgcolor: 'grey.50',
+                                        borderRadius: 2,
+                                        p: 2
+                                    }}
+                                >
+                                    <Question question={q} onAnswerChange={() => { }} disabled={true} />
+                                    <Button
+                                        variant="outlined"
+                                        color="error"
+                                        startIcon={<DeleteIcon />}
+                                        onClick={() => {
+                                            const newQuestions = [...questions];
+                                            newQuestions.splice(index, 1);
+                                            setQuestions(newQuestions);
+                                        }}
+                                        sx={{ mt: 2 }}
+                                    >
+                                        Remove Question
+                                    </Button>
+                                </ListItem>
+                            ))}
+                        </List>
+                    </Paper>
+                )}
 
-                <Button variant="success" className="mt-3" onClick={handleSubmit}>
+                <Button
+                    variant="contained"
+                    size="large"
+                    fullWidth
+                    onClick={handleSubmit}
+                    endIcon={<SendIcon />}
+                    sx={{
+                        py: 2,
+                        background: 'linear-gradient(45deg, #2c2c2c 30%, #4f4f4f 90%)',
+                        boxShadow: '0 3px 5px 2px rgba(44, 44, 44, .3)',
+                        '&:hover': { 
+                            background: 'linear-gradient(45deg, #4f4f4f 30%, #2c2c2c 90%)',
+                        }
+                    }}
+                >
                     Submit Survey
                 </Button>
             </Form>

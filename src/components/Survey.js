@@ -360,7 +360,7 @@ const SurveyForm = () => {
                                         p: 2
                                     }}
                                 >
-                                    <Question question={q} />
+                                    <Question question={q} onAnswerChange={() => { }} disabled={true} />
                                     <Button
                                         variant="outlined"
                                         color="error"

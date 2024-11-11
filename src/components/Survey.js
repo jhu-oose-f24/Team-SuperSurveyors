@@ -86,6 +86,7 @@ const theme = createTheme({
 });
 
 const SurveyForm = () => {
+    // Keep all existing state
     const [questions, setQuestions] = useState([]);
     const [questionText, setQuestionText] = useState('');
     const [questionType, setQuestionType] = useState('text');

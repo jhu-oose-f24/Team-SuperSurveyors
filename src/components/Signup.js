@@ -25,6 +25,7 @@ const Signup = () => {
                 surveys: [],
                 tags: [], // Empty tags to be filled during onboarding
                 uid: user.uid,
+                coins: 10,
             });
 
             // Redirect to onboarding

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Form, Button, Toast } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc } from 'firebase/firestore';
@@ -9,6 +9,8 @@ import { getAuth } from 'firebase/auth';
 import {
     PriorityQueue,
 } from '@datastructures-js/priority-queue';
+import { ClipLoader as Audio } from 'react-spinners';
+import { Container } from 'react-bootstrap';
 
 const Survey = () => {
     const [questions, setQuestions] = useState([]);
@@ -19,14 +21,7 @@ const Survey = () => {
     const [submissionSuccess, setSubmissionSuccess] = useState(false);
     const [showFailure, setShowFailure] = useState(false);
     const [failureTxt, setFailureTxt] = useState('');
-    const pq = new PriorityQueue((s1, s2) => {
-        if (s1[0] > s2[0]) {
-            return 1;
-        } else if (s1[0] === s2[0]) {
-            return 0;
-        }
-        return -1;
-    });
+    const pqRef = useRef(new PriorityQueue((s1, s2) => (s1[0] > s2[0] ? 1 : s1[0] === s2[0] ? 0 : -1)));
     // Use navigate to redirect
     const navigate = useNavigate();
 
@@ -67,6 +62,9 @@ const Survey = () => {
     };
 
     const fetchSurveyBasedOnTag = async () => {
+        //empty pq 
+        pqRef.current.clear();
+
         try {
             const userId = getUserId();
             const userInfo = query(
@@ -76,95 +74,99 @@ const Survey = () => {
             const userInfoSnapshot = await getDocs(userInfo);
             let userOwnedSurveys = [];
             let userTags = [];
+            let userAnsweredSurveys = new Set();
             userInfoSnapshot.forEach((child) => {
                 userOwnedSurveys = child.data().surveys;
                 if (child.data().tags) {
                     userTags = child.data().tags;
                 }
+                if (child.data().answeredSurveys) {
+                    userAnsweredSurveys = new Set(child.data().answeredSurveys);
+                }
             });
 
-            let surveyInfo;
-            if (userOwnedSurveys.length > 0) {
-                console.log("getting surveys that you didn't create");
-                surveyInfo = query(
-                    collection(db, 'surveys'),
-                    where(documentId(), 'not-in', userOwnedSurveys));
-            } else {
-                console.log("getting all surveys");
-                surveyInfo = query(collection(db, 'surveys'));
-            }
+            // not in user's owned surveys and answered surveys
+            let surveyInfo = userOwnedSurveys.length > 0 ? query(collection(db, 'surveys'), where(documentId(), 'not-in', userOwnedSurveys)) : query(collection(db, 'surveys'));
 
             const allSurveysSnapshot = await getDocs(surveyInfo);
+            //filter out the surveys that the user has already taken
+
             allSurveysSnapshot.forEach((child) => {
+                if (userAnsweredSurveys.has(child.id)) {
+                    return; //skip the survey that the user has already taken
+                }
+
                 let survey = child.data();
                 let commonTags = 0;
-                //if survey is tagged, calculate its score
+
                 if (survey.tags) {
                     for (let i = 0; i < survey.tags.length; i++) {
                         if (userTags.includes(survey.tags[i])) {
-                            commonTags = commonTags + 1;
+                            commonTags += 1;
                         }
                     }
                 }
                 let score = commonTags;
-                pq.enqueue((score, {
-                    id: child.id,
-                    ...survey
-                }));
-            })
-            return pq;
+                pqRef.current.enqueue([score, { id: child.id, ...survey }]);
+            });
+            return pqRef.current;
         } catch (error) {
-            console.error("Error fetching tagged survey recommendation: ", error);
+            console.error('Error fetching tagged survey recommendation:', error);
         }
     };
 
-const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
-    setQuestions([]);
-    setLoading(true);
-    setSubmissionSuccess(false);
-    let surveyData;
-    if (!ignoreIncompleteSurvey) {
-        //check if there are any unfinished questionnaires
-        const incompleteSurvey = await fetchIncompleteSurvey();
+    const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
+        const pq = pqRef.current;
+        setQuestions([]);
+        setLoading(true);
+        setSubmissionSuccess(false);
+        let surveyData;
+        if (!ignoreIncompleteSurvey) {
+            //check if there are any unfinished questionnaires
+            const incompleteSurvey = await fetchIncompleteSurvey();
 
-        if (incompleteSurvey) {
-            // If there is an incomplete questionnaire, load it
-            const docRef = doc(db, 'surveys', incompleteSurvey.surveyId);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                surveyData = { id: docSnap.id, ...docSnap.data() };
-                setAnswers(incompleteSurvey.answers);
+            if (incompleteSurvey) {
+                // If there is an incomplete questionnaire, load it
+                const docRef = doc(db, 'surveys', incompleteSurvey.surveyId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    surveyData = { id: docSnap.id, ...docSnap.data() };
+                    setAnswers(incompleteSurvey.answers);
+                } else {
+                    console.error('Survey not found');
+                    //If the questionnaire is not found, load the highest score questionaire
+                    if (pq.isEmpty()) {
+                        setAnswers({});
+                        surveyData = await getRandomSurvey();
+                    } else {
+                        setAnswers({});
+                        surveyData = pq.dequeue()[1];
+                    }
+                }
             } else {
-                console.error('Survey not found');
-                //If the questionnaire is not found, load the highest score questionaire
+                // If there are no unfinished questionnaires, load highest score questionare
                 if (pq.isEmpty()) {
                     setAnswers({});
                     surveyData = await getRandomSurvey();
                 } else {
-                    console.log("getting recommended survey!");
                     setAnswers({});
-                    surveyData = pq.dequeue();
+                    surveyData = pq.dequeue()[1];
                 }
             }
         } else {
-            // If there are no unfinished questionnaires, load highest score questionare
+            // If user ignore unfinished questionnaires, load random questionnaires directly
             if (pq.isEmpty()) {
                 setAnswers({});
                 surveyData = await getRandomSurvey();
-            } else {
-                console.log("getting recommended survey!");
+            }
+            else {
                 setAnswers({});
-                surveyData = pq.dequeue();
+                surveyData = pq.dequeue()[1];
             }
         }
-    } else {
-// If user ignore unfinished questionnaires, load random questionnaires directly
-        setAnswers({});
-        surveyData = await getRandomSurvey();
-    }
-    if (surveyData == null) {
-        return;
-    }
+        if (surveyData == null) {
+            return;
+        }
 
         setSurveyId(surveyData.id);
         setSurveyTitle(surveyData.title);
@@ -181,6 +183,15 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
     };
 
     const handleAnswerChange = (questionId, value) => {
+        //change value to array if question type is checkbox 
+        if (Array.isArray(value)) {
+            value = value.map((val) => val); // Copy the array
+        }
+
+
+
+
+
         setAnswers((prevAnswers) => {
             const newAnswers = {
                 ...prevAnswers,
@@ -214,8 +225,6 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
 
         // Check all answers before starting the transaction
         const answeredQuestions = Object.values(answers);
-        console.log(questions);
-        console.log(answeredQuestions);
         if (answeredQuestions.length < questions.length) {
             setFailureTxt('Please complete all questions before submitting');
             setShowFailure(true);
@@ -272,8 +281,7 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
             await Promise.all(promises);
 
             // deleted complete answer from incomplete database
-            const userId = getUserId();
-            await deleteDoc(doc(db, 'incompleteAnswers', `${surveyId}_${userId}`));
+            await completeSurvey(getUserId, surveyId);
 
             setSubmissionSuccess(true);
         } catch (error) {
@@ -289,7 +297,11 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
     }, []);
 
     if (loading) {
-        return <div className="d-flex flex-column align-items-center mt-5">Loading up a survey...</div>;
+        return (
+            <Container className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+                <Audio color='#123abc' loading={loading} size={150} />
+            </Container>
+        );
     } else if (submissionSuccess) {
         return (
             <div className="d-flex flex-column align-items-center mt-5">
@@ -311,7 +323,12 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
     return (
         <div className="d-flex flex-column align-items-center mt-5">
             <div>
-                <Button variant="secondary" type="submit" className="d-block mx-auto" onClick={() => fetchSurveys(true)}>
+                <Button variant="secondary" type="submit" className="d-block mx-auto" onClick={() => {
+                    completeSurvey(getUserId, surveyId);
+
+
+                    fetchSurveys(true)
+                }}>
                     Not interested? Answer a different survey
                 </Button>
             </div>
@@ -341,3 +358,24 @@ const fetchSurveys = async (ignoreIncompleteSurvey = false) => {
 };
 
 export default Survey;
+
+async function completeSurvey(getUserId, surveyId) {
+    const userId = getUserId();
+    await deleteDoc(doc(db, 'incompleteAnswers', `${surveyId}_${userId}`));
+
+    // add survey id to user's answered survey list
+    const userRef = doc(db, 'users', userId);
+    await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userRef);
+        let answeredSurveys = [];
+        if (userDoc.exists()) {
+            answeredSurveys = userDoc.data().answeredSurveys || [];
+        }
+
+        answeredSurveys.push(surveyId);
+
+        transaction.update(userRef, {
+            answeredSurveys: answeredSurveys,
+        });
+    });
+}

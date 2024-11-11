@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import Toast from 'react-bootstrap/Toast';
 import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../services/userService';
+import { loginUser, loginGoogleUser } from '../services/userService';
 import '../styles/signup.css';
 import { getAuth } from 'firebase/auth';
 
@@ -29,8 +29,10 @@ const Login = () => {
         await loginUser(email, password).then(() => {
             setShowFailure(false);
             setShowSuccess(true);
-            setTimeout(() => navigate('/'), 1000);
+            navigate('/');
         }).catch((error) => {
+            console.log("Error trying to login with username/password: " + error);
+
             if (error.name === 'FirebaseError' && error.code === 'auth/invalid-email') {
                 setFailureMsg("Please enter a valid email address");
             } else if (error.name === 'FirebaseError' && error.code === 'auth/invalid-credential') {
@@ -46,6 +48,22 @@ const Login = () => {
         e.preventDefault();
 
     }
+
+    const handleGoogleLogin = async (e) => {
+        e.preventDefault();
+
+        await loginGoogleUser().then((userInfo) => {
+            if (userInfo.isNewUser) {
+                navigate(`/onboarding/${userInfo.user.uid}`);
+            } else {
+                navigate('/');
+            }
+            
+        }).catch((error) => {
+            console.log("Error trying to login with Google: " + error);
+        });
+    }
+
     return (
         <div className="input_container">
             <b className="title">
@@ -61,13 +79,16 @@ const Login = () => {
                     <Form.Label>Password:</Form.Label>
                     <Form.Control type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />
                 </Form.Group>
-                <Button variant="primary" type="submit" onClick={(e) => handleSignUp(e)}>
+                <Button variant="primary" className="my-2" type="submit" onClick={(e) => handleSignUp(e)}>
                     Submit
                 </Button>
             </Form>
-            <br />
-            <Button variant="outline-primary" onClick={() => { navigate("/signup"); }}>Sign Up</Button>
-            <br />
+            <Button variant="primary" className="my-2" type="submit" onClick={(e) => handleGoogleLogin(e)}>
+                Login with your Google Account
+            </Button>
+            <Button variant="outline-primary" className="my-2" onClick={() => { navigate("/signup"); }}>
+                Sign Up
+            </Button>
             <Toast bg='success' show={showSuccess} onClose={() => setShowSuccess(false)} delay={2000} autohide>
                 <Toast.Body className='text-white'>Successfully signed in!</Toast.Body>
             </Toast>

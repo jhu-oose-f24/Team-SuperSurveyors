@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, ListGroup } from 'react-bootstrap';
+import { Form, Button, ListGroup, Toast } from 'react-bootstrap';
 import Question from './Question/Question';
 import { db } from '../firebase';
 import { collection, getDocs, addDoc, setDoc, doc } from 'firebase/firestore';
@@ -13,6 +13,12 @@ const SurveyForm = () => {
     const [newOption, setNewOption] = useState('');
     const [tags, setTags] = useState([]); // Available tags fetched from Firestore
     const [selectedTags, setSelectedTags] = useState([]); // Selected tags
+
+    // For toasts
+    const [showSurveyFailure, setShowSurveyFailure] = useState(false);
+    const [failureSurveyTxt, setFailureSurveyTxt] = useState('');
+    const [showQuestionFailure, setShowQuestionFailure] = useState(false);
+    const [failureQuestionTxt, setFailureQuestionTxt] = useState('');
 
     // Fetch tags from Firestore
     useEffect(() => {
@@ -31,7 +37,7 @@ const SurveyForm = () => {
 
     const handleTagSelection = (event) => {
         const value = event.target.value;
-        if (!selectedTags.includes(value)) {
+        if (value !== "placeholder" && !selectedTags.includes(value)) {
             setSelectedTags([...selectedTags, value]); // Add selected tag to the list
         }
     };
@@ -44,6 +50,17 @@ const SurveyForm = () => {
     };
 
     const addQuestion = () => {
+
+        if (questionText.trim().length < 5) {
+            setFailureQuestionTxt('Please include a descriptive question (at least 5 characters)');
+            setShowQuestionFailure(true);
+            return;
+        } else if ((questionType === 'radio' || questionType === 'checkbox') && !options.length) {
+            setFailureQuestionTxt('Please include at least one option for this question');
+            setShowQuestionFailure(true);
+            return;
+        }
+
         if (questionText.trim()) {
             setQuestions([...questions, { text: questionText, type: questionType, options }]);
             setQuestionText('');
@@ -57,6 +74,21 @@ const SurveyForm = () => {
             questions,
             tags: selectedTags, // Save selected tags
         };
+
+        // Verify survey before sending to Firestore
+        if (survey.title.length < 5) {
+            setFailureSurveyTxt('Please include a descriptive title for your survey (at least 5 characters)');
+            setShowSurveyFailure(true);
+            return;
+        } else if (!questions.length) {
+            setFailureSurveyTxt('Please include at least 1 question in your survey');
+            setShowSurveyFailure(true);
+            return;
+        } else if (questionText.length || options.length) {
+            setFailureSurveyTxt('Please add your unfinished question to your survey or clear out the inputs');
+            setShowSurveyFailure(true);
+            return;
+        }
 
         const docRef = await addDoc(collection(db, 'surveys'), survey);
         await setDoc(doc(db, 'surveyResults', docRef.id), { surveyTitle: survey.title });
@@ -74,12 +106,12 @@ const SurveyForm = () => {
     };
 
     return (
-        <div className="container mt-4">
+        <div className="container my-4">
             <h2>Create a Survey</h2>
             <Form>
                 <Form.Group controlId="surveyTitle" className="mt-3">
                     <Form.Label>Survey Title</Form.Label>
-                    <Form.Control type="text" placeholder="Enter survey title" />
+                    <Form.Control type="text" placeholder="Enter survey title" size='lg' className='w-50'/>
                 </Form.Group>
 
                 <Form.Group controlId="questionText" className="mt-3">
@@ -89,14 +121,15 @@ const SurveyForm = () => {
                         value={questionText}
                         onChange={(e) => setQuestionText(e.target.value)}
                         placeholder="Enter your question"
+                        className='w-50'
                     />
                 </Form.Group>
 
                 <Form.Group controlId="questionType" className="mt-3">
                     <Form.Label>Question Type</Form.Label>
-                    <Form.Control
-                        as="select"
+                    <Form.Select
                         value={questionType}
+                        className='w-auto'
                         onChange={(e) => {
                             setQuestionType(e.target.value);
                             setOptions([]);
@@ -105,7 +138,7 @@ const SurveyForm = () => {
                         <option value="text">Text</option>
                         <option value="radio">Radio</option>
                         <option value="checkbox">Checkbox</option>
-                    </Form.Control>
+                    </Form.Select>
                 </Form.Group>
 
                 {(questionType === 'radio' || questionType === 'checkbox') && (
@@ -116,8 +149,9 @@ const SurveyForm = () => {
                             placeholder="Enter option"
                             value={newOption}
                             onChange={(e) => setNewOption(e.target.value)}
+                            className='w-50'
                         />
-                        <Button className="mt-3" onClick={addOption}>
+                        <Button className="mt-3" onClick={addOption} disabled={!newOption.length} >
                             Add Option
                         </Button>
                         <ul className="mt-2">
@@ -141,16 +175,50 @@ const SurveyForm = () => {
                     </Form.Group>
                 )}
 
+                <Button className="mt-3" onClick={addQuestion}>
+                    Add Question to Survey
+                </Button>
+
+                <br />
+                <Toast bg='danger' className="my-2" show={showQuestionFailure} onClose={() => setShowQuestionFailure(false)} delay={2000} autohide>
+                    <Toast.Body className='text-white'>{failureQuestionTxt}</Toast.Body>
+                </Toast>
+
+                <ListGroup className="mt-3">
+                    {!questions.length ? (
+                        <ListGroup.Item className='text-black-50'>
+                            Press the button above to include your question in this survey
+                        </ListGroup.Item>
+                    ) : ''}
+                    {questions.map((q, index) => (
+                        <ListGroup.Item key={index}>
+                            <Question question={q} disabled={true} onAnswerChange={() => {}} />
+                            <Button
+                                variant="danger"
+                                size="sm"
+                                className="mt-2"
+                                onClick={() => {
+                                    const newQuestions = [...questions];
+                                    newQuestions.splice(index, 1);
+                                    setQuestions(newQuestions);
+                                }}
+                            >
+                                Remove Question
+                            </Button>
+                        </ListGroup.Item>
+                    ))}
+                </ListGroup>
+
                 <Form.Group controlId="tags" className="mt-3">
-                    <Form.Label>Select Tags</Form.Label>
-                    <Form.Control as="select" onChange={handleTagSelection}>
-                        <option value="">-- Select a Tag --</option>
+                    <Form.Label>Select tags that best describe your survey:</Form.Label>
+                    <Form.Select className="w-auto" onChange={handleTagSelection}>
+                        <option value="placeholder">-- Select a tag --</option>
                         {tags.map((tag) => (
                             <option key={tag} value={tag}>
                                 {tag}
                             </option>
                         ))}
-                    </Form.Control>
+                    </Form.Select>
                     <ul className="mt-2">
                         {selectedTags.map((tag, index) => (
                             <li key={index}>
@@ -170,34 +238,15 @@ const SurveyForm = () => {
                     </ul>
                 </Form.Group>
 
-                <Button className="mt-3" onClick={addQuestion}>
-                    Add Question
-                </Button>
-
-                <ListGroup className="mt-3">
-                    {questions.map((q, index) => (
-                        <ListGroup.Item key={index}>
-                            <Question question={q} />
-                            <Button
-                                variant="danger"
-                                size="sm"
-                                className="mt-2"
-                                onClick={() => {
-                                    const newQuestions = [...questions];
-                                    newQuestions.splice(index, 1);
-                                    setQuestions(newQuestions);
-                                }}
-                            >
-                                Remove Question
-                            </Button>
-                        </ListGroup.Item>
-                    ))}
-                </ListGroup>
-
                 <Button variant="success" className="mt-3" onClick={handleSubmit}>
-                    Submit Survey
+                    Publish Survey
                 </Button>
             </Form>
+
+            <br />
+            <Toast bg='danger' show={showSurveyFailure} onClose={() => setShowSurveyFailure(false)} delay={3000} autohide>
+                <Toast.Body className='text-white'>{failureSurveyTxt}</Toast.Body>
+            </Toast>
         </div>
     );
 };

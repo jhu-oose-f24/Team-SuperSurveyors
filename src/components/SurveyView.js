@@ -48,7 +48,7 @@ const SurveyView = () => {
         return;
       }
       let surveysData = await getUserSurveys();
-      console.log('Fetched Surveys:', surveysData);
+      // console.log('Fetched Surveys:', surveysData);
       setSurveys(surveysData);
       setLoading(false);
     };

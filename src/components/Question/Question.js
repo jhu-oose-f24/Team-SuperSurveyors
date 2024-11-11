@@ -30,7 +30,7 @@ const Question = ({ question, onAnswerChange, value, disabled = false, showTitle
                 <Form.Control
                     id={question.id}
                     type="text"
-                    placeholder="Your answer"
+                    placeholder={disabled ? "Responders will answer with text" : "Your answer"}
                     onChange={handleChange}
                     disabled={disabled}
                     value={value}
@@ -66,7 +66,7 @@ const Question = ({ question, onAnswerChange, value, disabled = false, showTitle
                             value={option}
                             onChange={handleChange}
                             disabled={disabled}
-                            checked={value.includes(option)}
+                            checked={value?.includes(option)}
                         />
                     ))}
                 </div>

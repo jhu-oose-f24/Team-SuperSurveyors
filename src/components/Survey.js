@@ -177,7 +177,7 @@ const SurveyForm = () => {
                 <ListGroup className="mt-3">
                     {questions.map((q, index) => (
                         <ListGroup.Item key={index}>
-                            <Question question={q} />
+                            <Question question={q} onAnswerChange={() => { }} disabled={true} />
                             <Button
                                 variant="danger"
                                 size="sm"

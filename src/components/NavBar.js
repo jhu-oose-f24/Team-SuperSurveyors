@@ -2,24 +2,42 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, Button } from 'react-bootstrap';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { logoutUser, getCurrentUser } from '../services/userService';
+import { logoutUser, getCurrentUser, getUserInfo } from '../services/userService';
+import '../styles/navbar.css';
+import { onSnapshot, doc } from 'firebase/firestore';
+import { db } from '../firebase.js';
 
 
 const NavBar = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [userInfo, setUserInfo] = useState({coins: 0});
 
     // Use navigate to redirect
     const navigate = useNavigate();
+    const auth = getAuth();
 
     // Check if user is authenticated using onAuthStateChanged to handle real-time login/logout
     useEffect(() => {
+        async function fetchInfo() {
+            const data = await getUserInfo();
+            console.log(data);
+            setUserInfo(data);
+        }
         const auth = getAuth();
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setIsAuthenticated(!!user); // Set to true if user exists
         });
+        if (isAuthenticated) {
+            fetchInfo();
+        }
 
         return () => unsubscribe(); // Cleanup subscription on component unmount
     }, []);
+
+    if (isAuthenticated) {
+        onSnapshot(doc(db, 'users', auth.currentUser.uid), (doc) => {
+            setUserInfo(doc.data())});
+    }
 
     // Handle when user clicks the logout button
     const handleLogout = async () => {
@@ -63,6 +81,9 @@ const NavBar = () => {
                             <Button variant="secondary" onClick={handleLogout}>
                                 Sign Out
                             </Button>
+                            <div className = "coins-text">
+                                {userInfo.coins + " coins"}
+                            </div>
                         </Nav>
                     ) : (
                         <Nav className="ms-auto">

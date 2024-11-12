@@ -1,5 +1,5 @@
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, getDocs, query, where, documentId, setDoc, doc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, query, where, documentId, setDoc, doc, getDoc, runTransaction} from 'firebase/firestore';
 
 const auth = getAuth();
 const db = getFirestore();
@@ -84,3 +84,25 @@ export const updateSurvey = async (surveyId, updatedSurvey) => {
         console.error('Error updating survey:', error);
     }
 };
+
+export const checkCurrency = async () => {
+    const user = auth.currentUser;
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+        return userSnap.data().coins > 2;
+    } else {
+        return false;
+    }
+}
+
+export const updateCurrency = async (change) => {
+    const user = auth.currentUser;
+    const userRef = doc(db, 'users', user.uid);
+    await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userRef);
+        transaction.update(userRef, {
+            coins: userDoc.data().coins + change
+        });
+    });
+}

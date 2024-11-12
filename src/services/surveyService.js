@@ -99,10 +99,8 @@ export const checkCurrency = async () => {
 export const updateCurrency = async (change) => {
     const user = auth.currentUser;
     const userRef = doc(db, 'users', user.uid);
-    await runTransaction(db, async (transaction) => {
-        const userDoc = await transaction.get(userRef);
-        transaction.update(userRef, {
-            coins: userDoc.data().coins + change
-        });
-    });
+    const userDoc = await getDoc(userRef);
+    let data = userDoc.data();
+    data.coins = data.coins + change;
+    await setDoc(doc(db, 'users', user.uid), data);
 }

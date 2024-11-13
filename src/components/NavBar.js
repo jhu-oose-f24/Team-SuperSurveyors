@@ -20,7 +20,6 @@ const NavBar = () => {
     useEffect(() => {
         async function fetchInfo() {
             const data = await getUserInfo();
-            console.log(data);
             setUserInfo(data);
         }
         const auth = getAuth();
@@ -29,16 +28,12 @@ const NavBar = () => {
         });
         if (isAuthenticated) {
             fetchInfo();
+            onSnapshot(doc(db, 'users', auth.currentUser.uid), (doc) => {
+                setUserInfo(doc.data())});
         }
 
         return () => unsubscribe(); // Cleanup subscription on component unmount
-    }, []);
-
-    if (isAuthenticated) {
-        onSnapshot(doc(db, 'users', auth.currentUser.uid), (doc) => {
-            setUserInfo(doc.data())});
-    }
-
+    }, [isAuthenticated]);
     // Handle when user clicks the logout button
     const handleLogout = async () => {
 

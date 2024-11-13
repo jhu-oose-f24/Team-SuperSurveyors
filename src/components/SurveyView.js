@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Container,
   Typography,
@@ -109,8 +109,6 @@ const SurveyView = () => {
   const [originalSurvey, setOriginalSurvey] = useState(null);
   const [orginialQuestions, setOriginalQuestions] = useState([]);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  
-  // Add menu states
   const [anchorEl, setAnchorEl] = useState(null);
   const [menuSurvey, setMenuSurvey] = useState(null);
 
@@ -122,7 +120,6 @@ const SurveyView = () => {
         return;
       }
       let surveysData = await getUserSurveys();
-      // console.log('Fetched Surveys:', surveysData);
       setSurveys(surveysData);
       setLoading(false);
     };
@@ -130,8 +127,8 @@ const SurveyView = () => {
     fetchSurveys();
   }, [navigate]);
 
-  // Menu handlers
   const handleMenuOpen = (event, survey) => {
+    event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setMenuSurvey(survey);
   };
@@ -188,7 +185,6 @@ const SurveyView = () => {
   
   const surveyTagChange = (newTags) => {
     setSurveys(surveys.map(survey => survey.id === selectedSurvey.id ? { ...survey, tags: newTags } : survey));
-    console.log(surveys);
   };
 
   const openAnswerDialog = (survey) => {
@@ -239,14 +235,26 @@ const SurveyView = () => {
                         alignItems: 'center',
                         mb: 2 
                       }}>
-                        <Typography variant="h6" sx={{ 
-                          fontWeight: 600,
-                          flex: 1,
-                          mr: 1,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}>
+                        <Typography
+                          variant="h6"
+                          component={Link}
+                          to={`/survey-view/${survey.id}`}
+                          sx={{ 
+                            fontWeight: 600,
+                            flex: 1,
+                            mr: 1,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            color: 'primary.main',
+                            textDecoration: 'none',
+                            '&:hover': {
+                              color: 'primary.light',
+                              textDecoration: 'underline',
+                            },
+                            cursor: 'pointer'
+                          }}
+                        >
                           {survey.title}
                         </Typography>
                         <IconButton
@@ -286,15 +294,14 @@ const SurveyView = () => {
                         )}
                       </Box>
 
-                      <Box sx={{ mb: 2 }}>
-                        {survey.questions.map((question, index) => (
-                          <Question 
-                            key={index} 
-                            disabled={true} 
-                            question={question} 
-                            onAnswerChange={() => {}}
-                          />
-                        ))}
+                      <Box>
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary"
+                          sx={{ fontStyle: 'italic' }}
+                        >
+                          Click title to view {survey.questions.length} question{survey.questions.length !== 1 ? 's' : ''}
+                        </Typography>
                       </Box>
                     </CardContent>
                   </Card>
@@ -308,6 +315,7 @@ const SurveyView = () => {
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
+          onClick={(e) => e.stopPropagation()}
           PaperProps={{
             sx: {
               mt: 0.5,

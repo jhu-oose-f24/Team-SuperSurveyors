@@ -1,15 +1,31 @@
+// ./components/Login.jsx
 import React, { useEffect, useState } from 'react';
-import { Form, Button, Row, Col, Container } from 'react-bootstrap';
-import Toast from 'react-bootstrap/Toast';
 import { useNavigate } from 'react-router-dom';
 import { loginUser, loginGoogleUser } from '../services/userService';
 import '../styles/signup.css';
 import { getAuth } from 'firebase/auth';
-
+import {
+  Container,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  Alert,
+  InputAdornment,
+  Fade,
+} from '@mui/material';
+import {
+  Email as EmailIcon,
+  Lock as LockIcon,
+  Visibility,
+  VisibilityOff,
+} from '@mui/icons-material';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [showFailure, setShowFailure] = useState(false);
     const [failureMsg, setFailureMsg] = useState("");
@@ -46,73 +62,213 @@ const Login = () => {
         });
 
         e.preventDefault();
-
     }
 
-    const handleGoogleLogin = async (e) => {
-        e.preventDefault();
-
-        await loginGoogleUser().then((userInfo) => {
-            if (userInfo.isNewUser) {
-                navigate(`/onboarding/${userInfo.user.uid}`);
-            } else {
-                navigate('/');
-            }
-            
-        }).catch((error) => {
-            console.log("Error trying to login with Google: " + error);
-        });
+  useEffect(() => {
+    const auth = getAuth();
+    if (auth.currentUser) {
+      navigate('/home'); // Redirect authenticated users to /home
     }
 
-    return (
-        <div className="input_container">
-            <b className="title">
-                Welcome to SuperSurveyors!
-            </b>
-            <Form className="submit_container">
-                <Form.Group className="mb-3" controlId="formBasicEmail">
-                    <Form.Label>Email Address:</Form.Label>
-                    <Form.Control type="email" placeholder="Enter email" onChange={e => setEmail(e.target.value)} />
-                </Form.Group>
+  }, [navigate]);
 
-                <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label>Password:</Form.Label>
-                    <Form.Control type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />
-                </Form.Group>
+  const handleLogin = async (e) => { // Renamed from handleSignUp to handleLogin
+    e.preventDefault();
 
-                <Row className='mb-2 justify-content-center'>
-                    <Button variant="primary" className="my-2 w-auto" type="submit" onClick={(e) => handleSignUp(e)}>
-                        Submit
+    try {
+      await loginUser(email, password);
+      setShowFailure(false);
+      setShowSuccess(true);
+      // Redirect to /home instead of /
+      setTimeout(() => navigate('/home'), 1000);
+    } catch (error) {
+      if (error.name === 'FirebaseError' && error.code === 'auth/invalid-email') {
+        setFailureMsg("Please enter a valid email address");
+      } else if (error.name === 'FirebaseError' && error.code === 'auth/invalid-credential') {
+        setFailureMsg("Invalid email and/or password. Press Sign Up if you don't have an account!");
+      } else {
+        setFailureMsg(error.message);
+      }
+      setShowFailure(true);
+    }
+  }
+
+  const handleGoogleLogin = async (e) => {
+    e.preventDefault();
+
+    await loginGoogleUser().then((userInfo) => {
+        if (userInfo.isNewUser) {
+            navigate(`/onboarding/${userInfo.user.uid}`);
+        } else {
+            navigate('/home');
+        }
+        
+    }).catch((error) => {
+        console.log("Error trying to login with Google: " + error);
+    });
+  }
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  return (
+    <Container component="main" maxWidth="sm">
+      <Box
+        sx={{
+          marginTop: 6,
+          marginBottom: 6,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            padding: 5,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+          }}
+        >
+          <Typography component="h1" variant="h4" gutterBottom>
+            Welcome Back
+          </Typography>
+          
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            Sign in to SuperSurveyors
+          </Typography>
+
+          <Box component="form" onSubmit={handleLogin} sx={{ width: '100%', mt: 1 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <EmailIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 2 }}
+            />
+
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              id="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockIcon color="action" />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Button
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowPassword}
+                      edge="end"
+                      sx={{ minWidth: 'auto', p: 1 }}
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
                     </Button>
-                </Row>
-                
-            </Form>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 3 }}
+            />
 
-            <Container className="w-50 d-flex flex-column align-items-center">
-                <Row className='mb-2'>
-                    <Col>
-                        <Button variant="outline-primary" className="w-auto" type="submit" onClick={(e) => handleGoogleLogin(e)}>
-                            Login with&nbsp;
-                            <img src='https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg' className="d-inline-block align-top" alt="Google logo" />
-                        </Button>
-                    </Col>
-                    <Col>
-                        <Button variant="outline-primary" className="w-auto" onClick={() => { navigate("/signup"); }}>
-                            Sign Up
-                        </Button>
-                    </Col>
-                </Row>
-            </Container>
-            
-            
-            <Toast bg='success' show={showSuccess} onClose={() => setShowSuccess(false)} delay={2000} autohide>
-                <Toast.Body className='text-white'>Successfully signed in!</Toast.Body>
-            </Toast>
-            <Toast bg='secondary' show={showFailure} onClose={() => setShowFailure(false)} delay={2000} autohide>
-                <Toast.Body className='text-white'>{failureMsg}</Toast.Body>
-            </Toast>
-        </div>
-    );
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              size="large"
+              sx={{ 
+                mb: 3,
+                height: 50,
+                borderRadius: 2,
+              }}
+            >
+              Sign In
+            </Button>
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              size="large"
+              onClick={(e) => handleGoogleLogin(e)}
+              sx={{ 
+                mb: 3,
+                height: 50,
+                borderRadius: 2,
+              }}
+            >
+              Login with&nbsp;
+              <img src='https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg' className="d-inline-block align-top" alt="Google logo" />
+            </Button>
+
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                Don't have an account?{' '}
+                <Button
+                  variant="text"
+                  onClick={() => navigate('/signup')}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Sign up
+                </Button>
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ width: '100%', mt: 3 }}>
+            <Fade in={showSuccess}>
+              <Alert 
+                severity="success" 
+                sx={{ 
+                  mb: showSuccess ? 2 : 0,
+                  width: '100%'
+                }}
+              >
+                Successfully signed in!
+              </Alert>
+            </Fade>
+
+            <Fade in={showFailure}>
+              <Alert 
+                severity="error"
+                sx={{ 
+                  mb: showFailure ? 2 : 0,
+                  width: '100%'
+                }}
+              >
+                {failureMsg}
+              </Alert>
+            </Fade>
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
+  );
 };
 
 export default Login;

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
-import Question from './Question/Question';
-import { getRandomSurvey } from '../services/surveyService';
+import { db } from '../../../../Downloads/Team-SuperSurveyors/src/firebase';
+import Question from '../../../../Downloads/Team-SuperSurveyors/src/components/Question/Question';
+import { getRandomSurvey } from '../../../../Downloads/Team-SuperSurveyors/src/services/surveyService';
 import { getAuth } from 'firebase/auth';
 import { PriorityQueue } from '@datastructures-js/priority-queue';
 import {
@@ -22,6 +22,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import SendIcon from '@mui/icons-material/Send';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { generateTagsForSurvey, updateUserTags } from './taggingService';
 
 const Survey = () => {
     const [questions, setQuestions] = useState([]);
@@ -236,6 +237,15 @@ const Survey = () => {
         }
 
         try {
+            const userId = getUserId();
+            // Generate tags based on the title and questions of the current question
+            const surveyQuestions = questions.map(q => q.text);
+            const tags = await generateTagsForSurvey(surveyTitle, surveyQuestions);
+
+            if (tags.length > 0) {
+                console.log('Generated Tag:', tags[0]);
+                await updateUserTags(userId, tags[0]);
+            }
             const promises = Object.entries(answers).map(
                 async ([questionId, answer]) => {
                     const questionRef = doc(

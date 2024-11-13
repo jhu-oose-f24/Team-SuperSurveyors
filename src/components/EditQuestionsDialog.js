@@ -102,6 +102,16 @@ const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSa
                 </Form>
             </Modal.Body>
             <Modal.Footer>
+                <Button variant='primary' onClick={() => {
+                    onQuestionsChange([...survey.questions, {
+                        text: 'New Question',
+                        type: 'text',
+                        options: []
+                    }]);
+
+                }
+                }>Add Question</Button>
+                <div style={{ flex: 1 }}></div>
                 <Button variant="secondary" onClick={() => {
                     setCurrentTitle(survey.title);
                     onQuestionsChange(survey.questions);

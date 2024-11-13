@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { FaEdit, FaTimes } from 'react-icons/fa'; // Import edit and cancel icons
 import Question from './Question'; // Import the base Question component
 
-const EditableQuestion = ({ question, onAnswerChange, disabled, onTitleChange, id }) => {
+const EditableQuestion = ({ question, onAnswerChange, disabled, onTitleChange, id, onOptionChange, onTypeChange }) => {
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [editedTitle, setEditedTitle] = useState(question.text);
     const [originalTitle, setOriginalTitle] = useState(question.text);
+    const [editedOptions, setEditedOptions] = useState(question.options);
+    const [editedType, setEditedType] = useState(question.type);
 
     const handleTitleClick = () => {
         setOriginalTitle(editedTitle); // Store the original title
@@ -35,6 +37,28 @@ const EditableQuestion = ({ question, onAnswerChange, disabled, onTitleChange, i
             handleTitleBlur();
         }
     }
+
+    const handleOptionChange = (index, value) => {
+        const newOptions = [...editedOptions];
+        newOptions[index] = value;
+        setEditedOptions(newOptions);
+        onOptionChange(id, newOptions);
+    };
+
+    const handleTypeChange = (e) => {
+        if (e.target.value === 'text') {
+            setEditedOptions([]);
+        }
+
+        onOptionChange(id, []);
+        setEditedType(e.target.value);
+        onTypeChange(id, e.target.value);
+    };
+
+    const addOption = () => {
+        setEditedOptions([...editedOptions, '']);
+    }
+
 
     return (
         <div>
@@ -81,6 +105,8 @@ const EditableQuestion = ({ question, onAnswerChange, disabled, onTitleChange, i
                     </div>
                 )}
             </div>
+
+
             <Question
                 question={question}
                 onAnswerChange={onAnswerChange}

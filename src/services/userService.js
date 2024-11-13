@@ -39,7 +39,7 @@ export const loginUser = async (email, password) => {
 
         if (userSnap.exists()) {
             const userData = userSnap.data();
-            return new User(user.uid, userData.displayName, user.email, user.photoURL);
+            return new User(user.uid, userData.displayName, user.email, user.photoURL, user.surveys, user.coins);
         } else {
             console.log('No such user document!');
             return null;
@@ -61,7 +61,7 @@ export const updateUserProfile = async (uid, displayName, photoURL) => {
             const userRef = doc(db, 'users', uid);
             await setDoc(userRef, { displayName, photoURL }, { merge: true });
 
-            return new User(uid, displayName, user.email, photoURL);
+            return new User(uid, displayName, user.email, photoURL, [], user.coins);
         }
         throw new Error('No user is signed in');
     } catch (error) {
@@ -84,10 +84,22 @@ export const logoutUser = async () => {
 export const getCurrentUser = () => {
     const user = auth.currentUser;
     if (user) {
-        return new User(user.uid, user.displayName, user.email, user.photoURL, user.surveys);
+        return new User(user.uid, user.displayName, user.email, user.photoURL, user.surveys, user.coins);
     }
     return null;
 };
+
+export const getUserInfo = async () => {
+    const user = auth.currentUser;
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+        const userData = userSnap.data();
+        return new User(userData.uid, userData.displayName, userData.email, userData.photoURL, userData.surveys, userData.coins);
+    } else {
+        return getCurrentUser();
+    }
+}
 
 // Add a survey ID to the user's surveys array
 export const addSurveyToUser = async (surveyId) => {

@@ -62,7 +62,7 @@ const EditableQuestion = ({ question, onAnswerChange, disabled, onTitleChange, i
 
     return (
         <div>
-            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%', marginBottom: '8px' }}>
                 {isEditingTitle ? (
                     <>
                         <input
@@ -88,7 +88,7 @@ const EditableQuestion = ({ question, onAnswerChange, disabled, onTitleChange, i
                                 fontSize: 'larger',
                                 border: 'none',
                                 background: 'none',
-                                padding: 0,
+                                padding: '0px',
                             }}
                         >
                             <FaTimes />

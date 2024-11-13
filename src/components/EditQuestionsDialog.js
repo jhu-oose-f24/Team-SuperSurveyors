@@ -12,7 +12,8 @@ import {
     Typography,
     styled,
     ThemeProvider,
-    createTheme
+    createTheme,
+    Input
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import EditableQuestion from './Question/EditableQuestion';
@@ -64,7 +65,6 @@ const DialogTitleStyled = styled(DialogTitle)(({ theme }) => ({
 
 const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSaveChanges, onTitleChange }) => {
     const [currentTitle, setCurrentTitle] = useState(survey.title);
-    const [currentTags, setCurrentTags] = useState(survey.tags);
     const onTagChange = (tags) => {
         survey.tags = tags;
     };
@@ -72,10 +72,12 @@ const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSa
     const componentRef = useRef(null);
 
     useEffect(() => {
-        if (tagRef.current) {
-            componentRef.current = new UseBootstrapTag(tagRef.current);
-        }
-    });
+        setTimeout(() => {
+            if (tagRef.current) {
+                componentRef.current = new UseBootstrapTag(tagRef.current);
+            }
+        }, 100); // Delay to ensure the tagRef is available
+    }, [tagRef.current]);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
@@ -127,7 +129,7 @@ const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSa
                         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 500 }}>
                             Title
                         </Typography>
-                        <TextField
+                        <Input
                             fullWidth
                             value={currentTitle}
                             onChange={(e) => handleTitleChange(e.target.value)}
@@ -142,9 +144,10 @@ const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSa
                             Tags
                         </Typography>
                         <TextField
+
+                            defaultValue={survey.tags}
                             fullWidth
                             inputRef={tagRef}
-                            defaultValue={survey.tags}
                             onKeyDown={handleKeyDown}
                             placeholder="Enter tags"
                             variant="outlined"

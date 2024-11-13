@@ -17,7 +17,10 @@ import {
   Chip,
   Stack,
   ThemeProvider,
-  createTheme
+  createTheme,
+  Snackbar,
+  Alert,
+  Fade
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -206,7 +209,7 @@ const SurveyForm = () => {
                     elevation={0} 
                     sx={{ 
                         p: 4, 
-                        mb: 4, 
+                        my: 4, 
                         backgroundColor: 'background.paper',
                         border: '1px solid',
                         borderColor: 'grey.200'
@@ -231,19 +234,19 @@ const SurveyForm = () => {
                         />
 
                         <FormControl fullWidth>
-                            <InputLabel>Question Type</InputLabel>
+                            <InputLabel>Response Type</InputLabel>
                             <Select
                                 value={questionType}
-                                label="Question Type"
+                                label="Response Type"
                                 onChange={(e) => {
                                     setQuestionType(e.target.value);
                                     setOptions([]);
                                 }}
                                 sx={{ borderRadius: 2 }}
                             >
-                                <MenuItem value="text">Text Response</MenuItem>
-                                <MenuItem value="radio">Single Choice</MenuItem>
-                                <MenuItem value="checkbox">Multiple Choice</MenuItem>
+                                <MenuItem value="text">Free Response</MenuItem>
+                                <MenuItem value="radio">Single Select</MenuItem>
+                                <MenuItem value="checkbox">Multiple Select</MenuItem>
                             </Select>
                         </FormControl>
 
@@ -310,41 +313,6 @@ const SurveyForm = () => {
                             </Box>
                         )}
 
-                        <FormControl fullWidth>
-                            <InputLabel>Select Tags</InputLabel>
-                            <Select
-                                value=""
-                                label="Select Tags"
-                                onChange={handleTagSelection}
-                                sx={{ borderRadius: 2 }}
-                            >
-                                <MenuItem value="">
-                                    <em>-- Select a Tag --</em>
-                                </MenuItem>
-                                {tags.map((tag) => (
-                                    <MenuItem key={tag} value={tag}>
-                                        {tag}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                            {selectedTags.map((tag, index) => (
-                                <Chip
-                                    key={index}
-                                    label={tag}
-                                    onDelete={() => {
-                                        const newTags = selectedTags.filter(t => t !== tag);
-                                        setSelectedTags(newTags);
-                                    }}
-                                    sx={{
-                                        bgcolor: 'grey.100',
-                                        '&:hover': { bgcolor: 'grey.200' }
-                                    }}
-                                />
-                            ))}
-                        </Box>
 
                         <Button
                             variant="outlined"
@@ -362,6 +330,23 @@ const SurveyForm = () => {
                         >
                             Add Question
                         </Button>
+                        <Snackbar
+                            open={showQuestionFailure}
+                            autoHideDuration={4000}
+                            onClose={() => setShowQuestionFailure(false)}
+                            TransitionComponent={Fade}
+                            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                        >
+                            <Alert
+                                severity="error" 
+                                variant="filled"
+                                onClose={() => setShowQuestionFailure(false)}
+                                sx={{ width: '100%' }}
+                            >
+                                {failureQuestionTxt}
+                            </Alert>
+                        </Snackbar>
+
                     </Stack>
                 </Paper>
 
@@ -414,6 +399,62 @@ const SurveyForm = () => {
                     </Paper>
                 )}
 
+                <Paper 
+                    elevation={0} 
+                    sx={{ 
+                        p: 4, 
+                        my: 4, 
+                        backgroundColor: 'background.paper',
+                        border: '1px solid',
+                        borderColor: 'grey.200'
+                    }}
+                >
+                    <Typography 
+                        variant="h6" 
+                        gutterBottom
+                        sx={{ fontWeight: 600, color: 'text.primary', mb: 4 }}
+                    >
+                        Tags that best describe this survey
+                    </Typography>
+                    <Stack spacing={4}>
+                        <FormControl fullWidth>
+                            <InputLabel>Select Tags</InputLabel>
+                            <Select
+                                value=""
+                                label="Select Tags"
+                                onChange={handleTagSelection}
+                                sx={{ borderRadius: 2 }}
+                            >
+                                <MenuItem value="">
+                                    <em>-- Select a Tag --</em>
+                                </MenuItem>
+                                {tags.map((tag) => (
+                                    <MenuItem key={tag} value={tag}>
+                                        {tag}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            {selectedTags.map((tag, index) => (
+                                <Chip
+                                    key={index}
+                                    label={tag}
+                                    onDelete={() => {
+                                        const newTags = selectedTags.filter(t => t !== tag);
+                                        setSelectedTags(newTags);
+                                    }}
+                                    sx={{
+                                        bgcolor: 'grey.100',
+                                        '&:hover': { bgcolor: 'grey.200' }
+                                    }}
+                                />
+                            ))}
+                        </Box>
+                    </Stack>
+                </Paper>
+
                 <Button
                     variant="contained"
                     size="large"
@@ -431,6 +472,23 @@ const SurveyForm = () => {
                 >
                     Submit Survey
                 </Button>
+
+                <Snackbar
+                    open={showSurveyFailure}
+                    autoHideDuration={4000}
+                    onClose={() => setShowSurveyFailure(false)}
+                    TransitionComponent={Fade}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                >
+                    <Alert
+                        severity="error" 
+                        variant="filled"
+                        onClose={() => setShowSurveyFailure(false)}
+                        sx={{ width: '100%' }}
+                    >
+                        {failureSurveyTxt}
+                    </Alert>
+                </Snackbar>
             </Container>
         </ThemeProvider>
     );

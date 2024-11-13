@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Button } from 'react-bootstrap';
+import { Form, Button, Row, Col, Container } from 'react-bootstrap';
 import Toast from 'react-bootstrap/Toast';
 import { useNavigate } from 'react-router-dom';
 import { loginUser, loginGoogleUser } from '../services/userService';
@@ -79,16 +79,32 @@ const Login = () => {
                     <Form.Label>Password:</Form.Label>
                     <Form.Control type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />
                 </Form.Group>
-                <Button variant="primary" className="my-2" type="submit" onClick={(e) => handleSignUp(e)}>
-                    Submit
-                </Button>
+
+                <Row className='mb-2 justify-content-center'>
+                    <Button variant="primary" className="my-2 w-auto" type="submit" onClick={(e) => handleSignUp(e)}>
+                        Submit
+                    </Button>
+                </Row>
+                
             </Form>
-            <Button variant="primary" className="my-2" type="submit" onClick={(e) => handleGoogleLogin(e)}>
-                Login with your Google Account
-            </Button>
-            <Button variant="outline-primary" className="my-2" onClick={() => { navigate("/signup"); }}>
-                Sign Up
-            </Button>
+
+            <Container className="w-50 d-flex flex-column align-items-center">
+                <Row className='mb-2'>
+                    <Col>
+                        <Button variant="outline-primary" className="w-auto" type="submit" onClick={(e) => handleGoogleLogin(e)}>
+                            Login with&nbsp;
+                            <img src='https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg' className="d-inline-block align-top" alt="Google logo" />
+                        </Button>
+                    </Col>
+                    <Col>
+                        <Button variant="outline-primary" className="w-auto" onClick={() => { navigate("/signup"); }}>
+                            Sign Up
+                        </Button>
+                    </Col>
+                </Row>
+            </Container>
+            
+            
             <Toast bg='success' show={showSuccess} onClose={() => setShowSuccess(false)} delay={2000} autohide>
                 <Toast.Body className='text-white'>Successfully signed in!</Toast.Body>
             </Toast>

@@ -1,7 +1,8 @@
 // ./components/Login.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../services/userService';
+import { loginUser, loginGoogleUser } from '../services/userService';
+import '../styles/signup.css';
 import { getAuth } from 'firebase/auth';
 import {
   Container,
@@ -22,19 +23,53 @@ import {
 } from '@mui/icons-material';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showFailure, setShowFailure] = useState(false);
-  const [failureMsg, setFailureMsg] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [showFailure, setShowFailure] = useState(false);
+    const [failureMsg, setFailureMsg] = useState("");
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const auth = getAuth();
+        if (auth.currentUser) {
+            navigate('/');
+        }
+
+    }, []);
+
+    const handleSignUp = async (e) => {
+        e.preventDefault();
+
+        await loginUser(email, password).then(() => {
+            setShowFailure(false);
+            setShowSuccess(true);
+            navigate('/');
+        }).catch((error) => {
+            console.log("Error trying to login with username/password: " + error);
+
+            if (error.name === 'FirebaseError' && error.code === 'auth/invalid-email') {
+                setFailureMsg("Please enter a valid email address");
+            } else if (error.name === 'FirebaseError' && error.code === 'auth/invalid-credential') {
+                setFailureMsg("Invalid email and/or password. Press Sign Up if you don't have an account!");
+            } else {
+                setFailureMsg(error.message);
+            }
+
+            setShowFailure(true);
+            return;
+        });
+
+        e.preventDefault();
+    }
 
   useEffect(() => {
     const auth = getAuth();
     if (auth.currentUser) {
       navigate('/home'); // Redirect authenticated users to /home
     }
+
   }, [navigate]);
 
   const handleLogin = async (e) => { // Renamed from handleSignUp to handleLogin
@@ -56,6 +91,21 @@ const Login = () => {
       }
       setShowFailure(true);
     }
+  }
+
+  const handleGoogleLogin = async (e) => {
+    e.preventDefault();
+
+    await loginGoogleUser().then((userInfo) => {
+        if (userInfo.isNewUser) {
+            navigate(`/onboarding/${userInfo.user.uid}`);
+        } else {
+            navigate('/home');
+        }
+        
+    }).catch((error) => {
+        console.log("Error trying to login with Google: " + error);
+    });
   }
 
   const handleClickShowPassword = () => {
@@ -158,6 +208,22 @@ const Login = () => {
               }}
             >
               Sign In
+            </Button>
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              size="large"
+              onClick={(e) => handleGoogleLogin(e)}
+              sx={{ 
+                mb: 3,
+                height: 50,
+                borderRadius: 2,
+              }}
+            >
+              Login with&nbsp;
+              <img src='https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg' className="d-inline-block align-top" alt="Google logo" />
             </Button>
 
             <Box sx={{ textAlign: 'center' }}>

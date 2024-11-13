@@ -17,7 +17,13 @@ import {
   Chip,
   Stack,
   ThemeProvider,
-  createTheme
+  createTheme,
+  Snackbar,
+  Alert,
+  Fade,
+  FormControlLabel,
+  Checkbox,
+  CircularProgress
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -28,8 +34,9 @@ import { collection, getDocs, addDoc, setDoc, doc } from 'firebase/firestore';
 import { addSurveyToUser } from '../services/userService';
 import { checkCurrency, updateCurrency } from '../services/surveyService';
 import { CurrencyYenTwoTone } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
-const theme = createTheme({
+export const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
@@ -96,7 +103,17 @@ const SurveyForm = () => {
     const [newOption, setNewOption] = useState('');
     const [tags, setTags] = useState([]);
     const [selectedTags, setSelectedTags] = useState([]);
+    const [sharePublicly, setSharePublicly] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
+    // For toasts
+    const [showSurveyFailure, setShowSurveyFailure] = useState(false);
+    const [failureSurveyTxt, setFailureSurveyTxt] = useState('');
+    const [showQuestionFailure, setShowQuestionFailure] = useState(false);
+    const [failureQuestionTxt, setFailureQuestionTxt] = useState('');
+
+    // Fetch tags from Firestore
     useEffect(() => {
         const fetchTags = async () => {
             try {
@@ -113,8 +130,8 @@ const SurveyForm = () => {
 
     const handleTagSelection = (event) => {
         const value = event.target.value;
-        if (!selectedTags.includes(value)) {
-            setSelectedTags([...selectedTags, value]);
+        if (value !== "placeholder" && !selectedTags.includes(value)) {
+            setSelectedTags([...selectedTags, value]); // Add selected tag to the list
         }
     };
 
@@ -126,6 +143,17 @@ const SurveyForm = () => {
     };
 
     const addQuestion = () => {
+
+        if (questionText.trim().length < 5) {
+            setFailureQuestionTxt('Please include a descriptive question (at least 5 characters)');
+            setShowQuestionFailure(true);
+            return;
+        } else if ((questionType === 'radio' || questionType === 'checkbox') && !options.length) {
+            setFailureQuestionTxt('Please include at least one option for this question');
+            setShowQuestionFailure(true);
+            return;
+        }
+
         if (questionText.trim()) {
             setQuestions([...questions, { text: questionText, type: questionType, options }]);
             setQuestionText('');
@@ -134,19 +162,42 @@ const SurveyForm = () => {
     };
 
     const handleSubmit = async () => {
+
+        // Check user's currency (if too low, they can't submit a survey)
         const currencycheck = await checkCurrency();
-        if (currencycheck == false) {
-            alert("Not enough currency!");
+        if (currencycheck === false) {
+            setFailureSurveyTxt('Insufficient coins. Please answer other surveys first.');
+            setShowSurveyFailure(true);
             return;
         }
+
         const survey = {
             title: document.getElementById('surveyTitle').value,
             questions,
             tags: selectedTags,
+            sharePublicly: sharePublicly
         };
 
+        // Verify survey before sending to Firestore
+        if (survey.title.length < 5) {
+            setFailureSurveyTxt('Please include a descriptive title for your survey (at least 5 characters)');
+            setShowSurveyFailure(true);
+            return;
+        } else if (!questions.length) {
+            setFailureSurveyTxt('Please include at least 1 question in your survey');
+            setShowSurveyFailure(true);
+            return;
+        } else if (questionText.length || options.length) {
+            setFailureSurveyTxt('Please add your unfinished question to your survey or clear out the inputs');
+            setShowSurveyFailure(true);
+            return;
+        }
+
+        setLoading(true);
+
         const docRef = await addDoc(collection(db, 'surveys'), survey);
-        await setDoc(doc(db, 'surveyResults', docRef.id), { surveyTitle: survey.title });
+        await setDoc(doc(db, 'surveyResults', docRef.id), { surveyTitle: survey.title,
+                                                            responseCount: 0 });
 
         questions.forEach(async (question, index) => {
             await setDoc(doc(db, 'surveyResults', docRef.id, 'questions', index.toString()), {
@@ -157,7 +208,10 @@ const SurveyForm = () => {
         });
         await addSurveyToUser(docRef.id);
         await updateCurrency(-2);
-        window.location.href = '/';
+
+        setLoading(false);
+
+        navigate('/view');
     };
 
     return (
@@ -180,7 +234,7 @@ const SurveyForm = () => {
                     elevation={0} 
                     sx={{ 
                         p: 4, 
-                        mb: 4, 
+                        my: 4, 
                         backgroundColor: 'background.paper',
                         border: '1px solid',
                         borderColor: 'grey.200'
@@ -205,19 +259,19 @@ const SurveyForm = () => {
                         />
 
                         <FormControl fullWidth>
-                            <InputLabel>Question Type</InputLabel>
+                            <InputLabel>Response Type</InputLabel>
                             <Select
                                 value={questionType}
-                                label="Question Type"
+                                label="Response Type"
                                 onChange={(e) => {
                                     setQuestionType(e.target.value);
                                     setOptions([]);
                                 }}
                                 sx={{ borderRadius: 2 }}
                             >
-                                <MenuItem value="text">Text Response</MenuItem>
-                                <MenuItem value="radio">Single Choice</MenuItem>
-                                <MenuItem value="checkbox">Multiple Choice</MenuItem>
+                                <MenuItem value="text">Free Response</MenuItem>
+                                <MenuItem value="radio">Single Select</MenuItem>
+                                <MenuItem value="checkbox">Multiple Select</MenuItem>
                             </Select>
                         </FormControl>
 
@@ -284,41 +338,6 @@ const SurveyForm = () => {
                             </Box>
                         )}
 
-                        <FormControl fullWidth>
-                            <InputLabel>Select Tags</InputLabel>
-                            <Select
-                                value=""
-                                label="Select Tags"
-                                onChange={handleTagSelection}
-                                sx={{ borderRadius: 2 }}
-                            >
-                                <MenuItem value="">
-                                    <em>-- Select a Tag --</em>
-                                </MenuItem>
-                                {tags.map((tag) => (
-                                    <MenuItem key={tag} value={tag}>
-                                        {tag}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                            {selectedTags.map((tag, index) => (
-                                <Chip
-                                    key={index}
-                                    label={tag}
-                                    onDelete={() => {
-                                        const newTags = selectedTags.filter(t => t !== tag);
-                                        setSelectedTags(newTags);
-                                    }}
-                                    sx={{
-                                        bgcolor: 'grey.100',
-                                        '&:hover': { bgcolor: 'grey.200' }
-                                    }}
-                                />
-                            ))}
-                        </Box>
 
                         <Button
                             variant="outlined"
@@ -336,6 +355,23 @@ const SurveyForm = () => {
                         >
                             Add Question
                         </Button>
+                        <Snackbar
+                            open={showQuestionFailure}
+                            autoHideDuration={4000}
+                            onClose={() => setShowQuestionFailure(false)}
+                            TransitionComponent={Fade}
+                            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                        >
+                            <Alert
+                                severity="error" 
+                                variant="filled"
+                                onClose={() => setShowQuestionFailure(false)}
+                                sx={{ width: '100%' }}
+                            >
+                                {failureQuestionTxt}
+                            </Alert>
+                        </Snackbar>
+
                     </Stack>
                 </Paper>
 
@@ -388,12 +424,74 @@ const SurveyForm = () => {
                     </Paper>
                 )}
 
+                <Paper 
+                    elevation={0} 
+                    sx={{ 
+                        p: 4, 
+                        my: 4, 
+                        backgroundColor: 'background.paper',
+                        border: '1px solid',
+                        borderColor: 'grey.200'
+                    }}
+                >
+                    <Typography 
+                        variant="h6" 
+                        gutterBottom
+                        sx={{ fontWeight: 600, color: 'text.primary', mb: 4 }}
+                    >
+                        Survey Options
+                    </Typography>
+                    <Stack spacing={4}>
+                        <FormControl fullWidth>
+                            <InputLabel>Select Tags that best describe this survey</InputLabel>
+                            <Select
+                                value=""
+                                label="Select Tags that best describe this survey"
+                                onChange={handleTagSelection}
+                                sx={{ borderRadius: 2 }}
+                            >
+                                <MenuItem value="">
+                                    <em>-- Select a Tag --</em>
+                                </MenuItem>
+                                {tags.map((tag) => (
+                                    <MenuItem key={tag} value={tag}>
+                                        {tag}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            {selectedTags.map((tag, index) => (
+                                <Chip
+                                    key={index}
+                                    label={tag}
+                                    onDelete={() => {
+                                        const newTags = selectedTags.filter(t => t !== tag);
+                                        setSelectedTags(newTags);
+                                    }}
+                                    sx={{
+                                        bgcolor: 'grey.100',
+                                        '&:hover': { bgcolor: 'grey.200' }
+                                    }}
+                                />
+                            ))}
+                        </Box>
+
+                        <FormControlLabel control={<Checkbox checked={sharePublicly} />} 
+                                            label="Allow this survey to appear in the Trending Surveys page" 
+                                            onChange={() => setSharePublicly(!sharePublicly)}
+                        />
+                    </Stack>
+                </Paper>
+
                 <Button
                     variant="contained"
                     size="large"
                     fullWidth
                     onClick={handleSubmit}
                     endIcon={<SendIcon />}
+                    disabled={loading}
                     sx={{
                         py: 2,
                         background: 'linear-gradient(45deg, #2c2c2c 30%, #4f4f4f 90%)',
@@ -405,6 +503,29 @@ const SurveyForm = () => {
                 >
                     Submit Survey
                 </Button>
+
+                {loading && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                        <CircularProgress size={40} thickness={4} />
+                    </Box>
+                )}
+
+                <Snackbar
+                    open={showSurveyFailure}
+                    autoHideDuration={4000}
+                    onClose={() => setShowSurveyFailure(false)}
+                    TransitionComponent={Fade}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                >
+                    <Alert
+                        severity="error" 
+                        variant="filled"
+                        onClose={() => setShowSurveyFailure(false)}
+                        sx={{ width: '100%' }}
+                    >
+                        {failureSurveyTxt}
+                    </Alert>
+                </Snackbar>
             </Container>
         </ThemeProvider>
     );

@@ -1,9 +1,10 @@
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signOut } from 'firebase/auth';
-import { /* getFirestore, */ doc, setDoc, getDoc, arrayUnion, updateDoc } from 'firebase/firestore';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signOut, GoogleAuthProvider, getAdditionalUserInfo, signInWithPopup } from 'firebase/auth';
+import { doc, setDoc, getDoc, arrayUnion, updateDoc } from 'firebase/firestore';
 import User from '../models/User';
 import { db } from '../firebase.js';
 
 const auth = getAuth();
+const provider = new GoogleAuthProvider();
 // const db = getFirestore();
 
 // Register a new user with email and password
@@ -48,6 +49,40 @@ export const loginUser = async (email, password) => {
         throw error;
     }
 };
+
+// Login a user with their Google account
+export const loginGoogleUser = async () => {
+    try {
+        
+        const userCredential = await signInWithPopup(auth, provider);
+        const user = userCredential.user;
+
+        // Fetch user data from Firestore
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            return {
+                isNewUser: false,
+                user: new User(user.uid, userData.displayName, user.email, user.photoURL)
+            };
+        } else {
+            const userRef = doc(db, 'users', user.uid);
+            const newUser = new User(user.uid, user.displayName, user.email, user.photoURL, []);
+            await setDoc(userRef, newUser.toJson());
+
+            return {
+                isNewUser: true,
+                user: newUser
+            };
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+    
+}
 
 // Update user profile
 export const updateUserProfile = async (uid, displayName, photoURL) => {

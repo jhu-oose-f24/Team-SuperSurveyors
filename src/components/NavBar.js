@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, Button } from 'react-bootstrap';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { logoutUser, getCurrentUser } from '../services/userService';
+import { ReactComponent as SSLogo } from '../styles/logoDraft.svg';
 
 
 const NavBar = () => {
@@ -34,6 +35,8 @@ const NavBar = () => {
             <Container>
                 {/* Change "SUperSurveyors" brand link to navigate to "/view" if authenticated */}
                 <Navbar.Brand as={Link} to={isAuthenticated ? "/view" : "/"}>
+                    <SSLogo width="30" length="30" className='d-inline-block align-top' />
+                    {' '}
                     SuperSurveyors
                 </Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />

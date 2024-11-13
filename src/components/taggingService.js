@@ -1,6 +1,6 @@
 import { OpenAI } from 'openai';
 import { doc, runTransaction } from 'firebase/firestore';
-import { db } from '../../../../Downloads/Team-SuperSurveyors/src/firebase';
+import { db } from '../firebase';
 
 const client = new OpenAI({
     apiKey: process.env.REACT_APP_OPENAI_API_KEY,

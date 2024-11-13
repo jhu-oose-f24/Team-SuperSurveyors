@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc } from 'firebase/firestore';
-import { db } from '../../../../Downloads/Team-SuperSurveyors/src/firebase';
-import Question from '../../../../Downloads/Team-SuperSurveyors/src/components/Question/Question';
-import { getRandomSurvey } from '../../../../Downloads/Team-SuperSurveyors/src/services/surveyService';
+import { db } from '../firebase';
+import Question from './Question/Question';
+import { getRandomSurvey } from '../services/surveyService';
 import { getAuth } from 'firebase/auth';
 import { PriorityQueue } from '@datastructures-js/priority-queue';
 import {

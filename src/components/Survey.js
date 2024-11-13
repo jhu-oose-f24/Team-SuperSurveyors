@@ -20,7 +20,10 @@ import {
   createTheme,
   Snackbar,
   Alert,
-  Fade
+  Fade,
+  FormControlLabel,
+  Checkbox,
+  CircularProgress
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -32,7 +35,7 @@ import { addSurveyToUser } from '../services/userService';
 import { checkCurrency, updateCurrency } from '../services/surveyService';
 import { CurrencyYenTwoTone } from '@mui/icons-material';
 
-const theme = createTheme({
+export const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
@@ -99,6 +102,8 @@ const SurveyForm = () => {
     const [newOption, setNewOption] = useState('');
     const [tags, setTags] = useState([]);
     const [selectedTags, setSelectedTags] = useState([]);
+    const [sharePublicly, setSharePublicly] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     // For toasts
     const [showSurveyFailure, setShowSurveyFailure] = useState(false);
@@ -155,15 +160,20 @@ const SurveyForm = () => {
     };
 
     const handleSubmit = async () => {
+
+        // Check user's currency (if too low, they can't submit a survey)
         const currencycheck = await checkCurrency();
-        if (currencycheck == false) {
-            alert("Not enough currency!");
+        if (currencycheck === false) {
+            setFailureSurveyTxt('Insufficient coins. Please answer other surveys first.');
+            setShowSurveyFailure(true);
             return;
         }
+
         const survey = {
             title: document.getElementById('surveyTitle').value,
             questions,
             tags: selectedTags,
+            sharePublicly: sharePublicly
         };
 
         // Verify survey before sending to Firestore
@@ -181,8 +191,11 @@ const SurveyForm = () => {
             return;
         }
 
+        setLoading(true);
+
         const docRef = await addDoc(collection(db, 'surveys'), survey);
-        await setDoc(doc(db, 'surveyResults', docRef.id), { surveyTitle: survey.title });
+        await setDoc(doc(db, 'surveyResults', docRef.id), { surveyTitle: survey.title,
+                                                            responseCount: 0 });
 
         questions.forEach(async (question, index) => {
             await setDoc(doc(db, 'surveyResults', docRef.id, 'questions', index.toString()), {
@@ -193,6 +206,9 @@ const SurveyForm = () => {
         });
         await addSurveyToUser(docRef.id);
         await updateCurrency(-2);
+
+        setLoading(false);
+
         window.location.href = '/';
     };
 
@@ -421,14 +437,14 @@ const SurveyForm = () => {
                         gutterBottom
                         sx={{ fontWeight: 600, color: 'text.primary', mb: 4 }}
                     >
-                        Tags that best describe this survey
+                        Survey Options
                     </Typography>
                     <Stack spacing={4}>
                         <FormControl fullWidth>
-                            <InputLabel>Select Tags</InputLabel>
+                            <InputLabel>Select Tags that best describe this survey</InputLabel>
                             <Select
                                 value=""
-                                label="Select Tags"
+                                label="Select Tags that best describe this survey"
                                 onChange={handleTagSelection}
                                 sx={{ borderRadius: 2 }}
                             >
@@ -459,6 +475,11 @@ const SurveyForm = () => {
                                 />
                             ))}
                         </Box>
+
+                        <FormControlLabel control={<Checkbox checked={sharePublicly} />} 
+                                            label="Allow this survey to appear in the Trending Surveys page" 
+                                            onChange={() => setSharePublicly(!sharePublicly)}
+                        />
                     </Stack>
                 </Paper>
 
@@ -468,6 +489,7 @@ const SurveyForm = () => {
                     fullWidth
                     onClick={handleSubmit}
                     endIcon={<SendIcon />}
+                    disabled={loading}
                     sx={{
                         py: 2,
                         background: 'linear-gradient(45deg, #2c2c2c 30%, #4f4f4f 90%)',
@@ -479,6 +501,12 @@ const SurveyForm = () => {
                 >
                     Submit Survey
                 </Button>
+
+                {loading && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                        <CircularProgress size={40} thickness={4} />
+                    </Box>
+                )}
 
                 <Snackbar
                     open={showSurveyFailure}

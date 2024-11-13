@@ -1,130 +1,138 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, getDocs, doc, getDoc, where, documentId } from 'firebase/firestore';
-import { db } from '../firebase';
-import { Card, Container, Row, Col } from 'react-bootstrap';
-import { getAuth } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
+import {
+    Container,
+    Typography,
+    Button,
+    Card,
+    CardContent,
+    Chip,
+    Box,
+    ThemeProvider,
+    CircularProgress,
+    Grid2
+  } from '@mui/material';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import { getTrendingSurveys } from '../services/surveyService';
+import { theme } from './Survey';
 
 const TrendingView = () => {
     const [trendingSurveys, setTrendingSurveys] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // TODO: Shouldn't need this, move stuff over to surveyService
-    const auth = getAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchTrendingSurveys = async () => {
-            try {
-
-                // Get current user's surveys to exclude them
-                const userRef = doc(db, 'users', auth.currentUser.uid);
-                const userDoc = await getDoc(userRef);
-                let userSurveys = userDoc.data()?.surveys || [];
-                
-                let resultsQ;
-                if (userSurveys.length) {
-                    resultsQ = query(collection(db, 'surveyResults'), where(documentId(), 'not-in', userSurveys));
-                } else {
-                    resultsQ = query(collection(db, 'surveyResults'));
-                }
-                
-                const querySnapshot = await getDocs(resultsQ);
-                
-                const surveys = [];
-                for (const docSnapshot of querySnapshot.docs) {
-                    const surveyData = docSnapshot.data();
-
-                    const curSurveyRef = doc(db, 'surveyResults', docSnapshot.id, 'questions');
-                    const curSurveySnapshot = await getDocs(curSurveyRef);
-                    const curSurveyData = curSurveySnapshot.docs.map(doc => doc.data());
-
-                    // Calculate total responses for each question
-                    const totalResponses = curSurveyData.reduce((acc, question) => {
-                        return acc + (question.responses ? question.responses.length : 0);
-                    }, 0);
-
-                    if (totalResponses > 0) {
-                        surveys.push({
-                            id: docSnapshot.id,
-                            title: surveyData.title,
-                            // questions: questions,
-                            totalResponses: totalResponses
-                        });
-                    }
-                }
-
-                // Sort surveys by total responses
-                surveys.sort((a, b) => b.totalResponses - a.totalResponses);
-                setTrendingSurveys(surveys);
-                setLoading(false);
-
-            } catch (error) {
-                console.error('Error fetching trending surveys:', error);
-                setLoading(false);
-            }
+            let trendingData = await getTrendingSurveys();
+            setTrendingSurveys(trendingData);
+            setLoading(false);
         };
 
         fetchTrendingSurveys();
-    }, [auth]);
+    }, []);
 
-    if (loading) {
-        return <div className="text-center mt-5">Loading trending surveys...</div>;
-    }
+    const openResults = (survey) => {
+        navigate(`/survey-results/${survey.id}`);
+    };  
 
     return (
-        <Container className="mt-5">
-            <h2 className="text-center mb-4">Trending Surveys</h2>
-            {trendingSurveys.map((survey) => (
-                <Card key={survey.id} className="mb-4">
-                    <Card.Header>
-                        <h4>{survey.title}</h4>
-                        <small>Total Responses: {survey.totalResponses}</small>
-                    </Card.Header>
-                    <Card.Body>
-                        {survey.questions.map((question, index) => (
-                            <div key={index} className="mb-4">
-                                <h5>{question.text}</h5>
-                                {question.responses && (
-                                    <Row>
-                                        {question.type === 'radio' || question.type === 'checkbox' ? (
-                                            <Col>
-                                                {question.options.map((option, optIndex) => {
-                                                    const responseCount = question.responses.filter(r => 
-                                                        Array.isArray(r) ? r.includes(option) : r === option
-                                                    ).length;
-                                                    const percentage = ((responseCount / question.responses.length) * 100).toFixed(1);
-                                                    
-                                                    return (
-                                                        <div key={optIndex} className="mb-2">
-                                                            <div>{option}: {percentage}% ({responseCount} responses)</div>
-                                                            <div className="progress">
-                                                                <div 
-                                                                    className="progress-bar" 
-                                                                    role="progressbar" 
-                                                                    style={{width: `${percentage}%`}}
-                                                                    aria-valuenow={percentage}
-                                                                    aria-valuemin="0"
-                                                                    aria-valuemax="100"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </Col>
-                                        ) : (
-                                            <Col>
-                                                <div className="text-muted">
-                                                    {question.responses.length} text responses received
-                                                </div>
-                                            </Col>
+        <ThemeProvider theme={theme}>
+            <Container maxWidth="lg" sx={{ py: 6 }}>
+                <Typography 
+                    variant="h4" 
+                    gutterBottom 
+                    sx={{textAlign: 'center', 
+                            mb: 4,
+                            fontWeight: 700,
+                            color: 'primary.main'
+                        }}
+                >
+                Trending Surveys
+                </Typography>
+
+                {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                    <CircularProgress size={40} thickness={4} />
+                </Box>
+
+                ) : (
+                <Grid2 container spacing={3}>
+                    {!trendingSurveys || !trendingSurveys.length ? (
+                    <Grid2>
+                        <Typography variant="h6" sx={{ textAlign: 'center', color: 'text.secondary' }}>
+                            No trending surveys available to show.
+                        </Typography>
+                    </Grid2>
+
+                    ) : (
+                    trendingSurveys.map((survey, index) => (
+                        <Grid2 key={survey.id}
+                                size={{xs: (index < 4) ? 12 : 12,
+                                        sm: (index < 4) ? 6 : 4
+                                    }}
+                        >
+                            <Card sx={{backgroundColor: (index === 0) ? '#FFD700' : 
+                                                        (index === 1) ? 'silver' : 
+                                                        (index === 2) ? '#E89C51' : 
+                                                        (index === 3) ? '#6f98bd' :
+                                                        'transparent'
+                                    }}
+                            >
+                                <CardContent>
+                                    <Box sx={{display: 'flex', 
+                                                justifyContent: 'space-between', 
+                                                alignItems: 'center',
+                                                mb: 2
+                                            }}
+                                    >
+                                        <Typography variant="h6" 
+                                                    sx={{fontWeight: 600,
+                                                            flex: 1,
+                                                            mr: 1,
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            whiteSpace: 'nowrap'
+                                                        }}
+                                        >
+                                            Top {index + 1}: {survey.title}
+                                        </Typography>
+                                    </Box>
+
+                                    <Box sx={{ mb: 2 }}>
+                                        {survey.tags && survey.tags.length > 0 ? (
+                                        survey.tags.map((tag, index) => (
+                                            <Chip key={index}
+                                                    label={tag}
+                                                    size="small"
+                                                    sx={{mr: 1, 
+                                                        mb: 1,
+                                                        bgcolor: 'grey.100',
+                                                    '   &:hover': { bgcolor: 'grey.200' }
+                                                    }}
+                                            />
+                                        ))) : (
+                                        <Typography variant="body2" color="text.secondary">
+                                            No tags available.
+                                        </Typography>
                                         )}
-                                    </Row>
-                                )}
-                            </div>
-                        ))}
-                    </Card.Body>
-                </Card>
-            ))}
-        </Container>
+                                    </Box>
+
+                                    <Button variant="outlined" 
+                                            startIcon={<BarChartIcon />}
+                                            onClick={() => openResults(survey)}>
+                                        View the {survey.responseCount} result{(survey.responseCount !== 1) ? 's' : ''}
+                                    </Button>
+
+                                </CardContent>
+                            </Card>
+                        </Grid2>
+                    ))
+                    )}
+                </Grid2>
+                )}
+            </Container>
+        </ThemeProvider>
+        
     );
 };
 

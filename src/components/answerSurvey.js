@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc } from 'firebase/firestore';
+import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase';
 import Question from './Question/Question';
 import { getRandomSurvey } from '../services/surveyService';
@@ -236,6 +236,9 @@ const Survey = () => {
         }
 
         try {
+            const surveyResultsRef = doc(db, 'surveyResults', surveyId);
+            await updateDoc(surveyResultsRef, { responseCount: increment(1) });
+
             const promises = Object.entries(answers).map(
                 async ([questionId, answer]) => {
                     const questionRef = doc(

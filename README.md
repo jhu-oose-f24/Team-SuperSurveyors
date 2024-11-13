@@ -34,4 +34,9 @@ Our app is a survey platform where people will be able to create their own serve
 * The survey answering feature has received a lot of improvements. Fetching a survey is now randomized, but also makes use of a priority queue of surveys that gives surveys a calculated score. 
 
 ## Iteration 4 Features
-* We've deployed our app on Github Pages
+* We've deployed our app on Github Pages. The link to the deployment is at the top of this README.
+* The UI for our website has been completely overhauled. We now use Material UI for all of our frontend needs. Some pages are still using the original React Bootstrap so we will convert the UI in the next iteration. To better guide users, we also created a landing page where they can see what we have to offer before creating an account. 
+* Users can now login with their Google account. If they previously had an account through the original Username/Password authentication then login with their Google account, they must login with Google for all future visits.
+* Trending Page implemented. It shows the 10 most popular surveys being answered, and allows the user to see the results for these surveys. 
+* Coin currency system implemented. A user's coin balance is shown in the NavBar. The balance will increment from answering other people's surveys and decrement from creating surveys. We hope this will users an incentive to be active with other users.
+* The Answer Surveys page had some issues last iteration like a user being able to reanswer surveys and glitches with multiple-select questions.

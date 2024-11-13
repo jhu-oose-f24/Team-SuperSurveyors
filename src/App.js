@@ -37,9 +37,9 @@ const App = () => {
           <Route path="/view" element={<SurveyView />} />
           <Route path="/profile" element={<UserView />} />
           <Route path="/answer" element={<AnswerSurvey />} />
+          <Route path="/trending" element={<TrendingView />} />
           <Route path="/survey-view/:surveyId" element={<SurveyDetailView />} />
           <Route path="/survey-results/:surveyId" element={<SurveyResults />} />
-          <Route path="/trending" element={<TrendingView />} />
         </Route>
 
         {/* Catch all route */}
@@ -75,6 +75,7 @@ const ProtectedLayout = () => {
           <Route path="/view" element={<SurveyView />} />
           <Route path="/profile" element={<UserView />} />
           <Route path="/answer" element={<AnswerSurvey />} />
+          <Route path="/trending" element={<TrendingView />} />
           <Route path="/survey-view/:surveyId" element={<SurveyDetailView />} />
           <Route path="/survey-results/:surveyId" element={<SurveyResults />} />
         </Route>

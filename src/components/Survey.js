@@ -34,6 +34,7 @@ import { collection, getDocs, addDoc, setDoc, doc } from 'firebase/firestore';
 import { addSurveyToUser } from '../services/userService';
 import { checkCurrency, updateCurrency } from '../services/surveyService';
 import { CurrencyYenTwoTone } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 export const theme = createTheme({
   palette: {
@@ -104,6 +105,7 @@ const SurveyForm = () => {
     const [selectedTags, setSelectedTags] = useState([]);
     const [sharePublicly, setSharePublicly] = useState(true);
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     // For toasts
     const [showSurveyFailure, setShowSurveyFailure] = useState(false);
@@ -209,7 +211,7 @@ const SurveyForm = () => {
 
         setLoading(false);
 
-        window.location.href = '/';
+        navigate('/view');
     };
 
     return (

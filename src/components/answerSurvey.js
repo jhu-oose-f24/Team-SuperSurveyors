@@ -1,16 +1,27 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Form, Button, Toast } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import Question from './Question/Question';
 import { getRandomSurvey } from '../services/surveyService';
 import { getAuth } from 'firebase/auth';
+import { PriorityQueue } from '@datastructures-js/priority-queue';
 import {
-    PriorityQueue,
-} from '@datastructures-js/priority-queue';
-import { ClipLoader as Audio } from 'react-spinners';
-import { Container } from 'react-bootstrap';
+    Container,
+    Typography,
+    Box,
+    Button,
+    Alert,
+    Snackbar,
+    Paper,
+    Stack,
+    Fade,
+    CircularProgress
+} from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import SendIcon from '@mui/icons-material/Send';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 const Survey = () => {
     const [questions, setQuestions] = useState([]);
@@ -22,11 +33,9 @@ const Survey = () => {
     const [showFailure, setShowFailure] = useState(false);
     const [failureTxt, setFailureTxt] = useState('');
     const pqRef = useRef(new PriorityQueue((s1, s2) => (s1[0] > s2[0] ? 1 : s1[0] === s2[0] ? 0 : -1)));
-    // Use navigate to redirect
     const navigate = useNavigate();
 
     const auth = getAuth();
-    //Get user uid
     const getUserId = useCallback(() => {
         const user = auth.currentUser;
         if (user) {
@@ -46,7 +55,6 @@ const Survey = () => {
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
-                // if the incompleteAnswers server is not empty, return the first doc
                 const doc = querySnapshot.docs[0];
                 return {
                     surveyId: doc.data().surveyId,
@@ -62,7 +70,6 @@ const Survey = () => {
     };
 
     const fetchSurveyBasedOnTag = async () => {
-        //empty pq 
         pqRef.current.clear();
 
         try {
@@ -85,15 +92,15 @@ const Survey = () => {
                 }
             });
 
-            // not in user's owned surveys and answered surveys
-            let surveyInfo = userOwnedSurveys.length > 0 ? query(collection(db, 'surveys'), where(documentId(), 'not-in', userOwnedSurveys)) : query(collection(db, 'surveys'));
+            let surveyInfo = userOwnedSurveys.length > 0 ? 
+                query(collection(db, 'surveys'), where(documentId(), 'not-in', userOwnedSurveys)) : 
+                query(collection(db, 'surveys'));
 
             const allSurveysSnapshot = await getDocs(surveyInfo);
-            //filter out the surveys that the user has already taken
 
             allSurveysSnapshot.forEach((child) => {
                 if (userAnsweredSurveys.has(child.id)) {
-                    return; //skip the survey that the user has already taken
+                    return;
                 }
 
                 let survey = child.data();
@@ -121,12 +128,11 @@ const Survey = () => {
         setLoading(true);
         setSubmissionSuccess(false);
         let surveyData;
+        
         if (!ignoreIncompleteSurvey) {
-            //check if there are any unfinished questionnaires
             const incompleteSurvey = await fetchIncompleteSurvey();
 
             if (incompleteSurvey) {
-                // If there is an incomplete questionnaire, load it
                 const docRef = doc(db, 'surveys', incompleteSurvey.surveyId);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
@@ -134,7 +140,6 @@ const Survey = () => {
                     setAnswers(incompleteSurvey.answers);
                 } else {
                     console.error('Survey not found');
-                    //If the questionnaire is not found, load the highest score questionaire
                     if (pq.isEmpty()) {
                         setAnswers({});
                         surveyData = await getRandomSurvey();
@@ -144,7 +149,6 @@ const Survey = () => {
                     }
                 }
             } else {
-                // If there are no unfinished questionnaires, load highest score questionare
                 if (pq.isEmpty()) {
                     setAnswers({});
                     surveyData = await getRandomSurvey();
@@ -154,7 +158,6 @@ const Survey = () => {
                 }
             }
         } else {
-            // If user ignore unfinished questionnaires, load random questionnaires directly
             if (pq.isEmpty()) {
                 setAnswers({});
                 surveyData = await getRandomSurvey();
@@ -171,7 +174,6 @@ const Survey = () => {
         setSurveyId(surveyData.id);
         setSurveyTitle(surveyData.title);
 
-        // Assign IDs to questions based on their index
         setQuestions(
             surveyData.questions.map((question, index) => ({
                 ...question,
@@ -183,14 +185,9 @@ const Survey = () => {
     };
 
     const handleAnswerChange = (questionId, value) => {
-        //change value to array if question type is checkbox 
         if (Array.isArray(value)) {
-            value = value.map((val) => val); // Copy the array
+            value = value.map((val) => val);
         }
-
-
-
-
 
         setAnswers((prevAnswers) => {
             const newAnswers = {
@@ -198,7 +195,6 @@ const Survey = () => {
                 [questionId]: value,
             };
 
-            // Save the unfinished answer
             saveIncompleteAnswers(newAnswers);
 
             return newAnswers;
@@ -223,7 +219,6 @@ const Survey = () => {
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        // Check all answers before starting the transaction
         const answeredQuestions = Object.values(answers);
         if (answeredQuestions.length < questions.length) {
             setFailureTxt('Please complete all questions before submitting');
@@ -231,7 +226,6 @@ const Survey = () => {
             return;
         }
 
-        // TODO: Minimum answer length?
         const minAnswerLength = 3;
         for (let i = 0; i < questions.length; i++) {
             if (questions[i].type === 'text' && answeredQuestions[i].length < minAnswerLength) {
@@ -244,8 +238,6 @@ const Survey = () => {
         try {
             const promises = Object.entries(answers).map(
                 async ([questionId, answer]) => {
-
-
                     const questionRef = doc(
                         db,
                         'surveyResults',
@@ -258,16 +250,13 @@ const Survey = () => {
                         const questionDoc = await transaction.get(questionRef);
                         let currentResponses = [];
                         if (questionDoc.exists()) {
-                            currentResponses =
-                                questionDoc.data().responses || [];
+                            currentResponses = questionDoc.data().responses || [];
                         }
 
                         let newResponses;
                         if (Array.isArray(answer)) {
-                            // For checkbox inputs
                             newResponses = currentResponses.concat(answer);
                         } else {
-                            // For text and radio inputs
                             newResponses = currentResponses.concat([answer]);
                         }
 
@@ -279,14 +268,12 @@ const Survey = () => {
             );
 
             await Promise.all(promises);
-
-            // deleted complete answer from incomplete database
             await completeSurvey(getUserId, surveyId);
-
             setSubmissionSuccess(true);
         } catch (error) {
             console.error('Error submitting responses:', error);
-            alert('There was an error submitting your responses');
+            setFailureTxt('There was an error submitting your responses');
+            setShowFailure(true);
         }
     };
 
@@ -298,44 +285,107 @@ const Survey = () => {
 
     if (loading) {
         return (
-            <Container className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-                <Audio color='#123abc' loading={loading} size={150} />
+            <Container sx={{ 
+                height: '100vh', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center'
+            }}>
+                <CircularProgress size={60} thickness={4} />
             </Container>
         );
-    } else if (submissionSuccess) {
+    }
+
+    if (submissionSuccess) {
         return (
-            <div className="d-flex flex-column align-items-center mt-5">
-                <div>Your response has been submitted.</div>
-                <br />
-                <div>
-                    <Button variant="primary" type="submit" className="d-block mx-auto" onClick={fetchSurveys}>
-                        Answer a new survey
-                    </Button>
-                    <br />
-                    <Button variant="secondary" type="submit" className="d-block mx-auto" onClick={() => navigate('/view')}>
-                        Go back to your surveys
-                    </Button>
-                </div>
-            </div>
-        )
+            <Container maxWidth="sm" sx={{ mt: 8 }}>
+                <Paper 
+                    elevation={0} 
+                    sx={{ 
+                        p: 4, 
+                        textAlign: 'center',
+                        border: '1px solid',
+                        borderColor: 'grey.200',
+                        borderRadius: 2
+                    }}
+                >
+                    <CheckCircleIcon sx={{ fontSize: 60, color: 'success.main', mb: 2 }} />
+                    <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+                        Your response has been submitted successfully!
+                    </Typography>
+                    <Stack spacing={2}>
+                        <Button
+                            variant="contained"
+                            startIcon={<RefreshIcon />}
+                            onClick={fetchSurveys}
+                            sx={{
+                                py: 1.5,
+                                bgcolor: 'grey.900',
+                                '&:hover': { bgcolor: 'grey.800' }
+                            }}
+                        >
+                            Answer a new survey
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            startIcon={<ArrowBackIcon />}
+                            onClick={() => navigate('/view')}
+                            sx={{ py: 1.5 }}
+                        >
+                            Go back to your surveys
+                        </Button>
+                    </Stack>
+                </Paper>
+            </Container>
+        );
     }
 
     return (
-        <div className="d-flex flex-column align-items-center mt-5">
-            <div>
-                <Button variant="secondary" type="submit" className="d-block mx-auto" onClick={() => {
-                    completeSurvey(getUserId, surveyId);
-
-
-                    fetchSurveys(true)
-                }}>
+        <Container maxWidth="md" sx={{ py: 4 }}>
+            <Box sx={{ mb: 4 }}>
+                <Button
+                    variant="outlined"
+                    startIcon={<RefreshIcon />}
+                    onClick={() => {
+                        completeSurvey(getUserId, surveyId);
+                        fetchSurveys(true);
+                    }}
+                    fullWidth
+                    sx={{ 
+                        py: 1.5,
+                        mb: 4,
+                        borderRadius: 2
+                    }}
+                >
                     Not interested? Answer a different survey
                 </Button>
-            </div>
-            <br />
-            <div className="w-100" style={{ maxWidth: '600px' }}>
-                <Form onSubmit={handleSubmit}>
-                    <h2 className="text-center mb-4">{surveyTitle}</h2>
+            </Box>
+
+            <Paper 
+                elevation={0}
+                component="form"
+                onSubmit={handleSubmit}
+                sx={{ 
+                    p: 4,
+                    border: '1px solid',
+                    borderColor: 'grey.200',
+                    borderRadius: 2
+                }}
+            >
+                <Typography 
+                    variant="h4" 
+                    align="center" 
+                    gutterBottom 
+                    sx={{ 
+                        mb: 4,
+                        fontWeight: 700,
+                        color: 'grey.900'
+                    }}
+                >
+                    {surveyTitle}
+                </Typography>
+
+                <Stack spacing={4}>
                     {questions.map((question) => (
                         <Question
                             key={question.id}
@@ -344,26 +394,47 @@ const Survey = () => {
                             value={answers[question.id] || ''}
                         />
                     ))}
-                    <Button variant="primary" type="submit" className="d-block mx-auto">
+
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        endIcon={<SendIcon />}
+                        sx={{
+                            py: 2,
+                            mt: 2,
+                            bgcolor: 'grey.900',
+                            '&:hover': { bgcolor: 'grey.800' }
+                        }}
+                    >
                         Submit Answers
                     </Button>
-                </Form>
-            </div>
-            <br />
-            <Toast bg='danger' show={showFailure} onClose={() => setShowFailure(false)} delay={2000} autohide>
-                <Toast.Body className='text-white'>{failureTxt}</Toast.Body>
-            </Toast>
-        </div>
+                </Stack>
+            </Paper>
+
+            <Snackbar
+                open={showFailure}
+                autoHideDuration={4000}
+                onClose={() => setShowFailure(false)}
+                TransitionComponent={Fade}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert 
+                    severity="error" 
+                    variant="filled"
+                    onClose={() => setShowFailure(false)}
+                    sx={{ width: '100%' }}
+                >
+                    {failureTxt}
+                </Alert>
+            </Snackbar>
+        </Container>
     );
 };
-
-export default Survey;
 
 async function completeSurvey(getUserId, surveyId) {
     const userId = getUserId();
     await deleteDoc(doc(db, 'incompleteAnswers', `${surveyId}_${userId}`));
 
-    // add survey id to user's answered survey list
     const userRef = doc(db, 'users', userId);
     await runTransaction(db, async (transaction) => {
         const userDoc = await transaction.get(userRef);
@@ -376,6 +447,9 @@ async function completeSurvey(getUserId, surveyId) {
 
         transaction.update(userRef, {
             answeredSurveys: answeredSurveys,
+            coins: userDoc.data().coins + 1
         });
     });
 }
+
+export default Survey;

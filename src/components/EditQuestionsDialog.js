@@ -1,18 +1,73 @@
 import React, { useEffect } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
-import EditableQuestion from './Question/EditableQuestion';
 import { useState, useRef } from 'react';
-import 'use-bootstrap-tag/dist/use-bootstrap-tag.css'
-import UseBootstrapTag from 'use-bootstrap-tag'
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+    TextField,
+    Box,
+    IconButton,
+    Typography,
+    styled,
+    ThemeProvider,
+    createTheme
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import EditableQuestion from './Question/EditableQuestion';
+import 'use-bootstrap-tag/dist/use-bootstrap-tag.css';
+import UseBootstrapTag from 'use-bootstrap-tag';
 
+const theme = createTheme({
+    components: {
+        MuiDialog: {
+            styleOverrides: {
+                paper: {
+                    borderRadius: 12,
+                    padding: 4,
+                },
+            },
+        },
+        MuiButton: {
+            styleOverrides: {
+                root: {
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    padding: '6px 16px',
+                    borderRadius: 8,
+                },
+            },
+        },
+        MuiTextField: {
+            styleOverrides: {
+                root: {
+                    '& .MuiOutlinedInput-root': {
+                        borderRadius: 8,
+                    },
+                },
+            },
+        },
+    },
+});
+
+const DialogTitleStyled = styled(DialogTitle)(({ theme }) => ({
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: theme.spacing(2),
+    paddingLeft: theme.spacing(3),
+    '& .MuiIconButton-root': {
+        marginRight: -theme.spacing(1),
+    },
+}));
 
 const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSaveChanges, onTitleChange }) => {
-
     const [currentTitle, setCurrentTitle] = useState(survey.title);
     const [currentTags, setCurrentTags] = useState(survey.tags);
     const onTagChange = (tags) => {
         survey.tags = tags;
-    }
+    };
     const tagRef = useRef(null);
     const componentRef = useRef(null);
 
@@ -22,11 +77,9 @@ const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSa
         }
     });
 
-
-
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
-            e.preventDefault(); // Prevent form submission on Enter key press
+            e.preventDefault();
         }
     };
 
@@ -39,94 +92,118 @@ const EditQuestionsDialog = ({ show, onHide, survey, onQuestionsChange, handleSa
     const handleTitleChange = (newTitle) => {
         setCurrentTitle(newTitle);
         onTitleChange(newTitle);
-    }
+    };
 
     const questionTitleChange = (index, newTitle) => {
         const updatedQuestions = [...survey.questions];
         updatedQuestions[index].text = newTitle;
         onQuestionsChange(updatedQuestions);
-    }
-
-
+    };
 
     return (
-        <Modal backdrop='static' keyboard={false} show={show} onHide={() => {
-            onHide();
-        }} size='lg' >
-            <Modal.Header closeButton>
-                <Modal.Title>Edit Survey</Modal.Title>
-            </Modal.Header>
-            {/* Add a Edit Title :*/}
-            <Modal.Body>
-                <Form>
-                    <Form.Group className="mb-3" controlId="editTitle" >
-                        <Form.Label>Title</Form.Label>
-                        <Form.Control
-                            type="text"
+        <ThemeProvider theme={theme}>
+            <Dialog
+                open={show}
+                onClose={onHide}
+                maxWidth="md"
+                PaperProps={{
+                    sx: {
+                        width: '600px',
+                        margin: 2,
+                    }
+                }}
+            >
+                <DialogTitleStyled>
+                    <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+                        Edit Survey
+                    </Typography>
+                    <IconButton onClick={onHide} size="small">
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitleStyled>
+
+                <DialogContent sx={{ px: 3, py: 2 }}>
+                    <Box sx={{ mb: 2.5 }}>
+                        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 500 }}>
+                            Title
+                        </Typography>
+                        <TextField
+                            fullWidth
                             value={currentTitle}
                             onChange={(e) => handleTitleChange(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            onBlur={() => {
-                            }}
+                            variant="outlined"
+                            size="small"
                         />
-                    </Form.Group>
-                </Form>
-            </Modal.Body>
-            <Modal.Body>
-                <Form>
-                    <Form.Group controlId="tags" className="mt-3">
-                        <Form.Label>Tags</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="Enter tags"
-                            ref={tagRef}
+                    </Box>
+
+                    <Box sx={{ mb: 2.5 }}>
+                        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 500 }}>
+                            Tags
+                        </Typography>
+                        <TextField
+                            fullWidth
+                            inputRef={tagRef}
                             defaultValue={survey.tags}
                             onKeyDown={handleKeyDown}
+                            placeholder="Enter tags"
+                            variant="outlined"
+                            size="small"
                         />
-                    </Form.Group>
-                </Form>
-            </Modal.Body>
+                    </Box>
 
+                    <Box>
+                        {survey.questions.map((question, index) => (
+                            <Box key={index} sx={{ mb: 2 }}>
+                                <EditableQuestion
+                                    disabled={true}
+                                    id={index}
+                                    question={question}
+                                    onQuestionChange={() => { }}
+                                    onTitleChange={questionTitleChange}
+                                />
+                            </Box>
+                        ))}
+                    </Box>
+                </DialogContent>
 
-
-
-
-            <Modal.Body>
-                <Form>
-                    {survey.questions.map((question, index) => (
-                        <Form.Group className="mb-3" controlId={`editQuestion${index}`} key={index}>
-
-                            <EditableQuestion disabled={true} id={index} question={question} onQuestionChange={() => { }} onTitleChange={questionTitleChange} />
-                        </Form.Group>
-                    ))}
-                </Form>
-            </Modal.Body>
-            <Modal.Footer>
-                <Button variant='primary' onClick={() => {
-                    onQuestionsChange([...survey.questions, {
-                        text: 'New Question',
-                        type: 'text',
-                        options: []
-                    }]);
-
-                }
-                }>Add Question</Button>
-                <div style={{ flex: 1 }}></div>
-                <Button variant="secondary" onClick={() => {
-                    setCurrentTitle(survey.title);
-                    onQuestionsChange(survey.questions);
-                    onHide();
-                }}>
-                    Cancel
-                </Button>
-                <Button variant="primary" onClick={() => {
-                    onTagChange(componentRef.current.getValues());
-                    handleSaveChanges(survey.id)
-                }}>
-                    Save Changes
-                </Button>
-            </Modal.Footer>
-        </Modal>
+                <DialogActions sx={{ p: 2, px: 3 }}>
+                    <Button
+                        variant="outlined"
+                        onClick={() => {
+                            setCurrentTitle(survey.title);
+                            onQuestionsChange(survey.questions);
+                            onHide();
+                        }}
+                        sx={{
+                            color: 'text.secondary',
+                            borderColor: 'grey.300',
+                            '&:hover': {
+                                borderColor: 'grey.400',
+                                backgroundColor: 'grey.50'
+                            }
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={() => {
+                            onTagChange(componentRef.current.getValues());
+                            handleSaveChanges(survey.id);
+                        }}
+                        sx={{
+                            bgcolor: 'primary.main',
+                            '&:hover': {
+                                bgcolor: 'primary.dark'
+                            }
+                        }}
+                    >
+                        Save Changes
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </ThemeProvider>
     );
 };
 

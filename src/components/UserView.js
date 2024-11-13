@@ -20,8 +20,7 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
-import LogoutIcon from '@mui/icons-material/Logout';
-import { getCurrentUser, logoutUser } from '../services/userService';
+import { getCurrentUser } from '../services/userService'; // Removed logoutUser import
 import EditUserProfileDialog from './EditUserProfileDialog';
 import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -136,10 +135,7 @@ const UserView = () => {
         setShowEditDialog(false);
     };
 
-    const handleLogout = async () => {
-        await logoutUser();
-        navigate('/login');
-    };
+    // Removed handleLogout function
 
     const toggleTagSelection = (tag) => {
         setSelectedTags((prev) =>
@@ -217,10 +213,10 @@ const UserView = () => {
                             display: 'flex',
                             gap: 1
                         }}>
-                            <IconButton onClick={handleEditProfile}>
+                            <IconButton onClick={handleEditProfile} aria-label="edit profile">
                                 <EditIcon />
                             </IconButton>
-                            <IconButton onClick={() => setShowTagDialog(true)}>
+                            <IconButton onClick={() => setShowTagDialog(true)} aria-label="edit tags">
                                 <LocalOfferIcon />
                             </IconButton>
                         </Box>
@@ -278,6 +274,8 @@ const UserView = () => {
                             </Box>
                         </Box>
 
+                        {/* Removed Sign Out Button */}
+                        {/* 
                         <Button
                             variant="contained"
                             color="error"
@@ -288,6 +286,7 @@ const UserView = () => {
                         >
                             Sign Out
                         </Button>
+                        */}
                     </Box>
                 </Paper>
 

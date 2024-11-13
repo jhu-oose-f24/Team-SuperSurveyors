@@ -1,12 +1,13 @@
 // src/models/User.js
 
 class User {
-    constructor(uid, displayName, email, photoURL, surveys = []) {
+    constructor(uid, displayName, email, photoURL, surveys = [], coins) {
         this.uid = uid;           // Unique user ID from Firebase
         this.displayName = displayName; // User's display name
         this.email = email;       // User's email address
         this.photoURL = photoURL; // URL to user's profile picture (optional)
         this.surveys = surveys;   // Array of survey IDs created by the user
+        this.coins = coins;
     }
 
     // Method to update user profile details
@@ -28,6 +29,7 @@ class User {
             email: this.email,
             photoURL: this.photoURL,
             surveys: this.surveys,
+            coins: this.coins,
         };
     }
 

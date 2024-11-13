@@ -447,6 +447,7 @@ async function completeSurvey(getUserId, surveyId) {
 
         transaction.update(userRef, {
             answeredSurveys: answeredSurveys,
+            coins: userDoc.data().coins + 1
         });
     });
 }

@@ -29,6 +29,8 @@ import Question from './Question/Question';
 import { db } from '../firebase';
 import { collection, getDocs, addDoc, setDoc, doc } from 'firebase/firestore';
 import { addSurveyToUser } from '../services/userService';
+import { checkCurrency, updateCurrency } from '../services/surveyService';
+import { CurrencyYenTwoTone } from '@mui/icons-material';
 
 const theme = createTheme({
   palette: {
@@ -153,6 +155,11 @@ const SurveyForm = () => {
     };
 
     const handleSubmit = async () => {
+        const currencycheck = await checkCurrency();
+        if (currencycheck == false) {
+            alert("Not enough currency!");
+            return;
+        }
         const survey = {
             title: document.getElementById('surveyTitle').value,
             questions,
@@ -184,8 +191,8 @@ const SurveyForm = () => {
                 responses: [],
             });
         });
-
         await addSurveyToUser(docRef.id);
+        await updateCurrency(-2);
         window.location.href = '/';
     };
 

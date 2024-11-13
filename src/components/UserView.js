@@ -1,10 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Container, Row, Col, Button, Modal, Badge } from 'react-bootstrap';
+import {
+  Container,
+  Paper,
+  Typography,
+  Avatar,
+  Button,
+  Box,
+  Chip,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Grid,
+  CircularProgress,
+  ThemeProvider,
+  createTheme
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { getCurrentUser, logoutUser } from '../services/userService';
 import EditUserProfileDialog from './EditUserProfileDialog';
 import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
+
+const theme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#2c2c2c',
+      light: '#4f4f4f',
+    },
+    secondary: {
+      main: '#757575',
+    },
+    background: {
+      default: '#f5f5f5',
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#2c2c2c',
+      secondary: '#757575',
+    },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          textTransform: 'none',
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+        },
+      },
+    },
+  },
+});
 
 const UserView = () => {
     const [user, setUser] = useState(null);
@@ -15,9 +81,9 @@ const UserView = () => {
     const [showTagDialog, setShowTagDialog] = useState(false);
     const [availableTags, setAvailableTags] = useState([]);
     const [selectedTags, setSelectedTags] = useState([]);
-
     const navigate = useNavigate();
 
+    // Keep all existing useEffects and handlers
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -53,6 +119,7 @@ const UserView = () => {
         fetchTags();
     }, []);
 
+    // Keep all existing handlers
     const handleEditProfile = () => {
         if (!user) return;
         setEditDisplayName(user.displayName || '');
@@ -92,164 +159,189 @@ const UserView = () => {
         }
     };
 
-    const getBadgeVariant = (index) => {
-        //Open for future change of color
-        const variants = ['secondary'];
-        return variants[index % variants.length];
-    };
-
     if (loadingUser) {
         return (
-            <Container className="d-flex align-items-center justify-content-center min-vh-100">
-                <div className="text-center">
-                    <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                    <p className="mt-2">Loading profile...</p>
-                </div>
-            </Container>
+            <ThemeProvider theme={theme}>
+                <Container sx={{ 
+                    height: '100vh', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                }}>
+                    <Box sx={{ textAlign: 'center' }}>
+                        <CircularProgress size={40} />
+                        <Typography sx={{ mt: 2 }}>Loading profile...</Typography>
+                    </Box>
+                </Container>
+            </ThemeProvider>
         );
     }
 
     if (!user) {
         return (
-            <Container className="d-flex align-items-center justify-content-center min-vh-100">
-                <p className="h4">No user available.</p>
-            </Container>
+            <ThemeProvider theme={theme}>
+                <Container sx={{ 
+                    height: '100vh', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                }}>
+                    <Typography variant="h4">No user available.</Typography>
+                </Container>
+            </ThemeProvider>
         );
     }
 
     return (
-        <Container className="py-5">
-            <Row className="justify-content-center">
-                <Col md={8} lg={6}>
-                    <Card className="border-0 shadow-lg">
-                        <Card.Header className="bg-white border-0 pt-4 pb-0">
-                            <div className="text-end mb-3">
-                                <Button
-                                    variant="link"
-                                    className="me-2 text-decoration-none"
-                                    onClick={handleEditProfile}
-                                >
-                                    <i className="bi bi-pencil"></i> Edit
-                                </Button>
-                                <Button
-                                    variant="link"
-                                    className="text-decoration-none"
-                                    onClick={() => setShowTagDialog(true)}
-                                >
-                                    <i className="bi bi-tags"></i> Tags
-                                </Button>
-                            </div>
-                            <div className="text-center">
-                                <div className="position-relative d-inline-block mb-3">
-                                    <img
-                                        src={
-                                            user.photoURL ||
-                                            'https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg'
-                                        }
-                                        alt="Profile"
-                                        className="rounded-circle"
-                                        style={{
-                                            width: '120px',
-                                            height: '120px',
-                                            objectFit: 'cover',
-                                            border: '4px solid white',
-                                            boxShadow: '0 0 20px rgba(0,0,0,0.1)',
+        <ThemeProvider theme={theme}>
+            <Container maxWidth="md" sx={{ py: 5 }}>
+                <Paper 
+                    elevation={0}
+                    sx={{ 
+                        border: '1px solid',
+                        borderColor: 'grey.200',
+                        overflow: 'hidden'
+                    }}
+                >
+                    <Box sx={{ 
+                        p: 4,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        position: 'relative'
+                    }}>
+                        <Box sx={{ 
+                            position: 'absolute',
+                            top: 16,
+                            right: 16,
+                            display: 'flex',
+                            gap: 1
+                        }}>
+                            <IconButton onClick={handleEditProfile}>
+                                <EditIcon />
+                            </IconButton>
+                            <IconButton onClick={() => setShowTagDialog(true)}>
+                                <LocalOfferIcon />
+                            </IconButton>
+                        </Box>
+
+                        <Avatar
+                            src={user.photoURL || 'https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg'}
+                            alt={user.displayName}
+                            sx={{ 
+                                width: 120,
+                                height: 120,
+                                mb: 2,
+                                border: 4,
+                                borderColor: 'white',
+                                boxShadow: '0 0 20px rgba(0,0,0,0.1)'
+                            }}
+                        />
+
+                        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                            {user.displayName || 'No Display Name'}
+                        </Typography>
+
+                        <Typography color="text.secondary" sx={{ mb: 0.5 }}>
+                            {user.email}
+                        </Typography>
+                        <Typography color="text.secondary" variant="body2" sx={{ mb: 3 }}>
+                            UID: {user.uid}
+                        </Typography>
+
+                        <Box sx={{ mb: 4, width: '100%', textAlign: 'center' }}>
+                            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
+                                Interest Tags
+                            </Typography>
+                            <Box sx={{ 
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: 1,
+                                justifyContent: 'center'
+                            }}>
+                                {user.tags && user.tags.length > 0 ? (
+                                    user.tags.map((tag, index) => (
+                                        <Chip
+                                            key={index}
+                                            label={tag}
+                                            sx={{
+                                                bgcolor: 'grey.100',
+                                                '&:hover': { bgcolor: 'grey.200' }
+                                            }}
+                                        />
+                                    ))
+                                ) : (
+                                    <Typography color="text.secondary">
+                                        No tags selected
+                                    </Typography>
+                                )}
+                            </Box>
+                        </Box>
+
+                        <Button
+                            variant="contained"
+                            color="error"
+                            fullWidth
+                            onClick={handleLogout}
+                            startIcon={<LogoutIcon />}
+                            sx={{ maxWidth: 400 }}
+                        >
+                            Sign Out
+                        </Button>
+                    </Box>
+                </Paper>
+
+                <EditUserProfileDialog
+                    show={showEditDialog}
+                    onHide={() => setShowEditDialog(false)}
+                    userId={user?.uid}
+                    displayName={editDisplayName}
+                    photoURL={editPhotoURL}
+                    onDisplayNameChange={setEditDisplayName}
+                    onPhotoURLChange={setEditPhotoURL}
+                    onSave={handleSaveChanges}
+                />
+
+                <Dialog
+                    open={showTagDialog}
+                    onClose={() => setShowTagDialog(false)}
+                    maxWidth="sm"
+                    fullWidth
+                >
+                    <DialogTitle>Edit Tags</DialogTitle>
+                    <DialogContent>
+                        <Grid container spacing={1} sx={{ pt: 1 }}>
+                            {availableTags.map((tag) => (
+                                <Grid item xs={6} sm={4} key={tag}>
+                                    <Button
+                                        variant={selectedTags.includes(tag) ? "contained" : "outlined"}
+                                        fullWidth
+                                        onClick={() => toggleTagSelection(tag)}
+                                        sx={{ 
+                                            borderRadius: 2,
+                                            py: 1
                                         }}
-                                    />
-                                </div>
-                                <h3 className="mb-0 fw-bold">
-                                    {user.displayName || 'No Display Name'}
-                                </h3>
-                            </div>
-                        </Card.Header>
-                        <Card.Body className="text-center">
-                            <div className="mb-4">
-                                <small className="text-muted d-block">{user.email}</small>
-                                <small className="text-muted d-block">UID: {user.uid}</small>
-                            </div>
-
-                            <div className="mb-4">
-                                <h6 className="text-muted mb-3">Interest Tags</h6>
-                                <div className="d-flex flex-wrap gap-2 justify-content-center">
-                                    {user.tags && user.tags.length > 0 ? (
-                                        user.tags.map((tag, index) => (
-                                            <Badge
-                                                key={index}
-                                                bg={getBadgeVariant(index)}
-                                                className="px-3 py-2 rounded-pill"
-                                            >
-                                                {tag}
-                                            </Badge>
-                                        ))
-                                    ) : (
-                                        <span className="text-muted">No tags selected</span>
-                                    )}
-                                </div>
-                            </div>
-
-                            <Button
-                                variant="danger"
-                                className="w-100"
-                                onClick={handleLogout}
-                            >
-                                <i className="bi bi-box-arrow-right me-2"></i>
-                                Sign Out
-                            </Button>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-
-            <EditUserProfileDialog
-                show={showEditDialog}
-                onHide={() => setShowEditDialog(false)}
-                userId={user?.uid}
-                displayName={editDisplayName}
-                photoURL={editPhotoURL}
-                onDisplayNameChange={setEditDisplayName}
-                onPhotoURLChange={setEditPhotoURL}
-                onSave={handleSaveChanges}
-            />
-
-            <Modal
-                show={showTagDialog}
-                onHide={() => setShowTagDialog(false)}
-                centered
-            >
-                <Modal.Header closeButton>
-                    <Modal.Title>Edit Tags</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Row className="g-2">
-                        {availableTags.map((tag) => (
-                            <Col xs={6} md={4} key={tag}>
-                                <Button
-                                    variant={
-                                        selectedTags.includes(tag)
-                                            ? 'primary'
-                                            : 'outline-primary'
-                                    }
-                                    className="w-100"
-                                    onClick={() => toggleTagSelection(tag)}
-                                >
-                                    {tag}
-                                </Button>
-                            </Col>
-                        ))}
-                    </Row>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowTagDialog(false)}>
-                        Cancel
-                    </Button>
-                    <Button variant="primary" onClick={handleSaveTags}>
-                        Save Changes
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-        </Container>
+                                    >
+                                        {tag}
+                                    </Button>
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </DialogContent>
+                    <DialogActions sx={{ px: 3, pb: 3 }}>
+                        <Button onClick={() => setShowTagDialog(false)}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            variant="contained"
+                            onClick={handleSaveTags}
+                        >
+                            Save Changes
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            </Container>
+        </ThemeProvider>
     );
 };
 

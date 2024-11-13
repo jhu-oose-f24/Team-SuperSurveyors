@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
-  Typography,
-  TextField,
-  Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  Paper,
-  Box,
-  Chip,
-  Stack,
-  ThemeProvider,
-  createTheme
+    Container,
+    Typography,
+    TextField,
+    Button,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
+    List,
+    ListItem,
+    ListItemText,
+    IconButton,
+    Paper,
+    Box,
+    Chip,
+    Stack,
+    ThemeProvider,
+    createTheme
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -28,63 +28,65 @@ import { collection, getDocs, addDoc, setDoc, doc } from 'firebase/firestore';
 import { addSurveyToUser } from '../services/userService';
 import { checkCurrency, updateCurrency } from '../services/surveyService';
 import { CurrencyYenTwoTone } from '@mui/icons-material';
+import { UploadWidget } from '../services/uploadService';
+
 
 const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#2c2c2c',
-      light: '#4f4f4f',
-    },
-    secondary: {
-      main: '#757575',
-    },
-    background: {
-      default: '#f5f5f5',
-      paper: '#ffffff',
-    },
-    text: {
-      primary: '#2c2c2c',
-      secondary: '#757575',
-    },
-    action: {
-      hover: 'rgba(0, 0, 0, 0.04)',
-    },
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: 'none',
-          fontWeight: 600,
+    palette: {
+        mode: 'light',
+        primary: {
+            main: '#2c2c2c',
+            light: '#4f4f4f',
         },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
+        secondary: {
+            main: '#757575',
         },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 8,
-          },
+        background: {
+            default: '#f5f5f5',
+            paper: '#ffffff',
         },
-      },
-    },
-    MuiChip: {
-      styleOverrides: {
-        root: {
-          borderRadius: 6,
+        text: {
+            primary: '#2c2c2c',
+            secondary: '#757575',
         },
-      },
+        action: {
+            hover: 'rgba(0, 0, 0, 0.04)',
+        },
     },
-  },
+    components: {
+        MuiButton: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 8,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                },
+            },
+        },
+        MuiPaper: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 12,
+                },
+            },
+        },
+        MuiTextField: {
+            styleOverrides: {
+                root: {
+                    '& .MuiOutlinedInput-root': {
+                        borderRadius: 8,
+                    },
+                },
+            },
+        },
+        MuiChip: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 6,
+                },
+            },
+        },
+    },
 });
 
 const SurveyForm = () => {
@@ -96,6 +98,8 @@ const SurveyForm = () => {
     const [newOption, setNewOption] = useState('');
     const [tags, setTags] = useState([]);
     const [selectedTags, setSelectedTags] = useState([]);
+
+
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -163,10 +167,10 @@ const SurveyForm = () => {
     return (
         <ThemeProvider theme={theme}>
             <Container maxWidth="md" sx={{ py: 6 }}>
-                <Typography 
-                    variant="h4" 
-                    gutterBottom 
-                    sx={{ 
+                <Typography
+                    variant="h4"
+                    gutterBottom
+                    sx={{
                         fontWeight: 700,
                         mb: 4,
                         color: 'primary.main',
@@ -175,12 +179,12 @@ const SurveyForm = () => {
                 >
                     Create a Survey
                 </Typography>
-                
-                <Paper 
-                    elevation={0} 
-                    sx={{ 
-                        p: 4, 
-                        mb: 4, 
+
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: 4,
+                        mb: 4,
                         backgroundColor: 'background.paper',
                         border: '1px solid',
                         borderColor: 'grey.200'
@@ -241,11 +245,11 @@ const SurveyForm = () => {
                                         variant="contained"
                                         onClick={addOption}
                                         startIcon={<AddCircleIcon />}
-                                        sx={{ 
+                                        sx={{
                                             px: 3,
                                             background: 'linear-gradient(45deg, #2c2c2c 30%, #4f4f4f 90%)',
                                             boxShadow: '0 2px 4px rgba(44, 44, 44, .2)',
-                                            '&:hover': { 
+                                            '&:hover': {
                                                 background: 'linear-gradient(45deg, #4f4f4f 30%, #2c2c2c 90%)',
                                             }
                                         }}
@@ -328,7 +332,7 @@ const SurveyForm = () => {
                                 py: 1.5,
                                 borderColor: 'primary.main',
                                 color: 'primary.main',
-                                '&:hover': { 
+                                '&:hover': {
                                     backgroundColor: 'action.hover',
                                     borderColor: 'primary.light'
                                 }
@@ -340,17 +344,17 @@ const SurveyForm = () => {
                 </Paper>
 
                 {questions.length > 0 && (
-                    <Paper 
-                        elevation={0} 
-                        sx={{ 
-                            p: 4, 
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 4,
                             mb: 4,
                             border: '1px solid',
                             borderColor: 'grey.200'
                         }}
                     >
-                        <Typography 
-                            variant="h6" 
+                        <Typography
+                            variant="h6"
                             gutterBottom
                             sx={{ fontWeight: 600, color: 'text.primary' }}
                         >
@@ -360,8 +364,8 @@ const SurveyForm = () => {
                             {questions.map((q, index) => (
                                 <ListItem
                                     key={index}
-                                    sx={{ 
-                                        display: 'block', 
+                                    sx={{
+                                        display: 'block',
                                         mb: 2,
                                         bgcolor: 'grey.50',
                                         borderRadius: 2,
@@ -388,6 +392,9 @@ const SurveyForm = () => {
                     </Paper>
                 )}
 
+                <UploadWidget />
+
+
                 <Button
                     variant="contained"
                     size="large"
@@ -398,7 +405,7 @@ const SurveyForm = () => {
                         py: 2,
                         background: 'linear-gradient(45deg, #2c2c2c 30%, #4f4f4f 90%)',
                         boxShadow: '0 3px 5px 2px rgba(44, 44, 44, .3)',
-                        '&:hover': { 
+                        '&:hover': {
                             background: 'linear-gradient(45deg, #4f4f4f 30%, #2c2c2c 90%)',
                         }
                     }}
@@ -407,6 +414,8 @@ const SurveyForm = () => {
                 </Button>
             </Container>
         </ThemeProvider>
+
+
     );
 };
 

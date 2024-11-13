@@ -4,6 +4,8 @@
   "private": true,
   "homepage": "https://jhu-oose-f24.github.io/Team-SuperSurveyors/",
   "dependencies": {
+    "@cloudinary/react": "^1.13.1",
+    "@cloudinary/url-gen": "^1.21.0",
     "@datastructures-js/priority-queue": "^6.3.1",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",

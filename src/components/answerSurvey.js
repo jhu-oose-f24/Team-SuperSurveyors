@@ -23,6 +23,9 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { generateTagsForSurvey, updateUserTags } from './taggingService';
 
+import { Create, Share } from '@mui/icons-material';
+import CreateAndSharing from './createAndSharing';
+
 const Survey = () => {
     const [questions, setQuestions] = useState([]);
     const [answers, setAnswers] = useState({});
@@ -430,6 +433,26 @@ const Survey = () => {
                 >
                     {surveyTitle}
                 </Typography>
+
+                {/* Image Gallery */}
+                {images.length > 0 && (
+                    <Box sx={{ mt: 4 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Image Gallery
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                            {images.map((url, index) => (
+                                <img
+                                    key={index}
+                                    src={url}
+                                    alt={`Survey Image ${index}`}
+                                    style={{ width: '200px', height: 'auto', margin: '10px' }}
+                                />
+                            ))}
+                        </Box>
+                    </Box>
+                )}
+
 
                 <Stack spacing={4}>
                     {questions.map((question) => (

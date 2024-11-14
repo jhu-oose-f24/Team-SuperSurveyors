@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Container,
   Typography,
@@ -23,6 +23,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { Share } from '@mui/icons-material';
 import Question from './Question/Question';
 import DeleteConfirmationDialog from './DeleteDialog.js';
 import EditQuestionsDialog from './EditQuestionsDialog.js';
@@ -30,6 +31,7 @@ import { getCurrentUser } from '../services/userService.js';
 import { getUserSurveys, updateSurvey } from '../services/surveyService.js';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import { shareSurvey } from './createAndSharing.js';
 
 const theme = createTheme({
   palette: {
@@ -109,8 +111,6 @@ const SurveyView = () => {
   const [originalSurvey, setOriginalSurvey] = useState(null);
   const [orginialQuestions, setOriginalQuestions] = useState([]);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  
-  // Add menu states
   const [anchorEl, setAnchorEl] = useState(null);
   const [menuSurvey, setMenuSurvey] = useState(null);
 
@@ -122,7 +122,6 @@ const SurveyView = () => {
         return;
       }
       let surveysData = await getUserSurveys();
-      console.log('Fetched Surveys:', surveysData);
       setSurveys(surveysData);
       setLoading(false);
     };
@@ -130,8 +129,8 @@ const SurveyView = () => {
     fetchSurveys();
   }, [navigate]);
 
-  // Menu handlers
   const handleMenuOpen = (event, survey) => {
+    event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setMenuSurvey(survey);
   };
@@ -185,15 +184,14 @@ const SurveyView = () => {
   const handleSurveyDelete = (surveyId) => {
     setSurveys(surveys.filter((survey) => survey.id !== surveyId));
   };
-  
+
   const surveyTagChange = (newTags) => {
     setSurveys(surveys.map(survey => survey.id === selectedSurvey.id ? { ...survey, tags: newTags } : survey));
-    console.log(surveys);
   };
 
   const openAnswerDialog = (survey) => {
     navigate(`/survey-results/${survey.id}`);
-  };  
+  };
 
   const closeResponseModal = () => {
     setShowResponseModal(false);
@@ -203,11 +201,11 @@ const SurveyView = () => {
   return (
     <ThemeProvider theme={theme}>
       <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Typography 
-          variant="h4" 
-          gutterBottom 
-          sx={{ 
-            textAlign: 'center', 
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            textAlign: 'center',
             mb: 4,
             fontWeight: 700,
             color: 'primary.main'
@@ -233,20 +231,32 @@ const SurveyView = () => {
                 <Grid item xs={12} sm={6} md={4} key={survey.id}>
                   <Card>
                     <CardContent>
-                      <Box sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
+                      <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
                         alignItems: 'center',
-                        mb: 2 
+                        mb: 2
                       }}>
-                        <Typography variant="h6" sx={{ 
-                          fontWeight: 600,
-                          flex: 1,
-                          mr: 1,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}>
+                        <Typography
+                          variant="h6"
+                          component={Link}
+                          to={`/survey-view/${survey.id}`}
+                          sx={{
+                            fontWeight: 600,
+                            flex: 1,
+                            mr: 1,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            color: 'primary.main',
+                            textDecoration: 'none',
+                            '&:hover': {
+                              color: 'primary.light',
+                              textDecoration: 'underline',
+                            },
+                            cursor: 'pointer'
+                          }}
+                        >
                           {survey.title}
                         </Typography>
                         <IconButton
@@ -254,7 +264,7 @@ const SurveyView = () => {
                           size="small"
                           sx={{
                             color: 'text.secondary',
-                            '&:hover': { 
+                            '&:hover': {
                               color: 'primary.main',
                               backgroundColor: 'action.hover'
                             }
@@ -271,8 +281,8 @@ const SurveyView = () => {
                               key={index}
                               label={tag}
                               size="small"
-                              sx={{ 
-                                mr: 1, 
+                              sx={{
+                                mr: 1,
                                 mb: 1,
                                 bgcolor: 'grey.100',
                                 '&:hover': { bgcolor: 'grey.200' }
@@ -286,15 +296,14 @@ const SurveyView = () => {
                         )}
                       </Box>
 
-                      <Box sx={{ mb: 2 }}>
-                        {survey.questions.map((question, index) => (
-                          <Question 
-                            key={index} 
-                            disabled={true} 
-                            question={question} 
-                            onAnswerChange={() => {}}
-                          />
-                        ))}
+                      <Box>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ fontStyle: 'italic' }}
+                        >
+                          Click title to view {survey.questions.length} question{survey.questions.length !== 1 ? 's' : ''}
+                        </Typography>
                       </Box>
                     </CardContent>
                   </Card>
@@ -308,6 +317,7 @@ const SurveyView = () => {
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
+          onClick={(e) => e.stopPropagation()}
           PaperProps={{
             sx: {
               mt: 0.5,
@@ -339,14 +349,26 @@ const SurveyView = () => {
             </ListItemIcon>
             <ListItemText>View Results</ListItemText>
           </MenuItem>
-          <MenuItem 
+          {/* Create sharing link*/}
+          <MenuItem onClick={() => {
+            shareSurvey(menuSurvey.id);
+            handleMenuClose();
+          }}>
+            <ListItemIcon>
+              <Share fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Share</ListItemText>
+          </MenuItem>
+
+
+          <MenuItem
             onClick={() => {
               openDeleteDialog(menuSurvey);
               handleMenuClose();
             }}
-            sx={{ 
+            sx={{
               color: 'error.main',
-              '&:hover': { 
+              '&:hover': {
                 bgcolor: 'error.lighter',
               }
             }}
@@ -389,8 +411,8 @@ const SurveyView = () => {
           onSurveyDelete={handleSurveyDelete}
         />
 
-        <Dialog 
-          open={showResponseModal} 
+        <Dialog
+          open={showResponseModal}
           onClose={closeResponseModal}
           PaperProps={{
             sx: {

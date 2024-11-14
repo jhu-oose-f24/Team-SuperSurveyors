@@ -1,23 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
-  Typography,
-  TextField,
-  Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  Paper,
-  Box,
-  Chip,
-  Stack,
-  ThemeProvider,
-  createTheme
+    Container,
+    Typography,
+    TextField,
+    Button,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
+    List,
+    ListItem,
+    ListItemText,
+    IconButton,
+    Paper,
+    Box,
+    Chip,
+    Stack,
+    ThemeProvider,
+    createTheme,
+    Snackbar,
+    Alert,
+    Fade,
+    FormControlLabel,
+    Checkbox,
+    CircularProgress
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -26,63 +32,67 @@ import Question from './Question/Question';
 import { db } from '../firebase';
 import { collection, getDocs, addDoc, setDoc, doc } from 'firebase/firestore';
 import { addSurveyToUser } from '../services/userService';
+import { checkCurrency, updateCurrency } from '../services/surveyService';
+import { CurrencyYenTwoTone } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { UploadWidget } from '../services/uploadService';
 
-const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#2c2c2c',
-      light: '#4f4f4f',
-    },
-    secondary: {
-      main: '#757575',
-    },
-    background: {
-      default: '#f5f5f5',
-      paper: '#ffffff',
-    },
-    text: {
-      primary: '#2c2c2c',
-      secondary: '#757575',
-    },
-    action: {
-      hover: 'rgba(0, 0, 0, 0.04)',
-    },
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: 'none',
-          fontWeight: 600,
+export const theme = createTheme({
+    palette: {
+        mode: 'light',
+        primary: {
+            main: '#2c2c2c',
+            light: '#4f4f4f',
         },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
+        secondary: {
+            main: '#757575',
         },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 8,
-          },
+        background: {
+            default: '#f5f5f5',
+            paper: '#ffffff',
         },
-      },
-    },
-    MuiChip: {
-      styleOverrides: {
-        root: {
-          borderRadius: 6,
+        text: {
+            primary: '#2c2c2c',
+            secondary: '#757575',
         },
-      },
+        action: {
+            hover: 'rgba(0, 0, 0, 0.04)',
+        },
     },
-  },
+    components: {
+        MuiButton: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 8,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                },
+            },
+        },
+        MuiPaper: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 12,
+                },
+            },
+        },
+        MuiTextField: {
+            styleOverrides: {
+                root: {
+                    '& .MuiOutlinedInput-root': {
+                        borderRadius: 8,
+                    },
+                },
+            },
+        },
+        MuiChip: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 6,
+                },
+            },
+        },
+    },
 });
 
 const SurveyForm = () => {
@@ -94,6 +104,17 @@ const SurveyForm = () => {
     const [newOption, setNewOption] = useState('');
     const [tags, setTags] = useState([]);
     const [selectedTags, setSelectedTags] = useState([]);
+    const [sharePublicly, setSharePublicly] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+
+    // For toasts
+    const [showSurveyFailure, setShowSurveyFailure] = useState(false);
+    const [failureSurveyTxt, setFailureSurveyTxt] = useState('');
+    const [showQuestionFailure, setShowQuestionFailure] = useState(false);
+    const [failureQuestionTxt, setFailureQuestionTxt] = useState('');
+
+    // Fetch tags from Firestore    
     const [images, setImages] = useState([]); // 添加状态来存储图片 URL
 
     useEffect(() => {
@@ -112,14 +133,14 @@ const SurveyForm = () => {
 
     //add image
     const handleUpload = (url) => {
-        setImages([...images, url]); 
+        setImages([...images, url]);
     };
 
 
     const handleTagSelection = (event) => {
         const value = event.target.value;
-        if (!selectedTags.includes(value)) {
-            setSelectedTags([...selectedTags, value]);
+        if (value !== "placeholder" && !selectedTags.includes(value)) {
+            setSelectedTags([...selectedTags, value]); // Add selected tag to the list
         }
     };
 
@@ -131,6 +152,17 @@ const SurveyForm = () => {
     };
 
     const addQuestion = () => {
+
+        if (questionText.trim().length < 5) {
+            setFailureQuestionTxt('Please include a descriptive question (at least 5 characters)');
+            setShowQuestionFailure(true);
+            return;
+        } else if ((questionType === 'radio' || questionType === 'checkbox') && !options.length) {
+            setFailureQuestionTxt('Please include at least one option for this question');
+            setShowQuestionFailure(true);
+            return;
+        }
+
         if (questionText.trim()) {
             setQuestions([...questions, { text: questionText, type: questionType, options }]);
             setQuestionText('');
@@ -138,18 +170,48 @@ const SurveyForm = () => {
         }
     };
 
-    
+
 
     const handleSubmit = async () => {
+
+        // Check user's currency (if too low, they can't submit a survey)
+        const currencycheck = await checkCurrency();
+        if (currencycheck === false) {
+            setFailureSurveyTxt('Insufficient coins. Please answer other surveys first.');
+            setShowSurveyFailure(true);
+            return;
+        }
+
         const survey = {
             title: document.getElementById('surveyTitle').value,
             questions,
             tags: selectedTags,
-            images,
+            images: images,
+            sharePublicly: sharePublicly
         };
 
+        // Verify survey before sending to Firestore
+        if (survey.title.length < 5) {
+            setFailureSurveyTxt('Please include a descriptive title for your survey (at least 5 characters)');
+            setShowSurveyFailure(true);
+            return;
+        } else if (!questions.length) {
+            setFailureSurveyTxt('Please include at least 1 question in your survey');
+            setShowSurveyFailure(true);
+            return;
+        } else if (questionText.length || options.length) {
+            setFailureSurveyTxt('Please add your unfinished question to your survey or clear out the inputs');
+            setShowSurveyFailure(true);
+            return;
+        }
+
+        setLoading(true);
+
         const docRef = await addDoc(collection(db, 'surveys'), survey);
-        await setDoc(doc(db, 'surveyResults', docRef.id), { surveyTitle: survey.title });
+        await setDoc(doc(db, 'surveyResults', docRef.id), {
+            surveyTitle: survey.title,
+            responseCount: 0
+        });
 
         questions.forEach(async (question, index) => {
             await setDoc(doc(db, 'surveyResults', docRef.id, 'questions', index.toString()), {
@@ -158,18 +220,21 @@ const SurveyForm = () => {
                 responses: [],
             });
         });
-
         await addSurveyToUser(docRef.id);
-        window.location.href = '/';
+        await updateCurrency(-2);
+
+        setLoading(false);
+
+        navigate('/view');
     };
 
     return (
         <ThemeProvider theme={theme}>
             <Container maxWidth="md" sx={{ py: 6 }}>
-                <Typography 
-                    variant="h4" 
-                    gutterBottom 
-                    sx={{ 
+                <Typography
+                    variant="h4"
+                    gutterBottom
+                    sx={{
                         fontWeight: 700,
                         mb: 4,
                         color: 'primary.main',
@@ -178,12 +243,12 @@ const SurveyForm = () => {
                 >
                     Create a Survey
                 </Typography>
-                
-                <Paper 
-                    elevation={0} 
-                    sx={{ 
-                        p: 4, 
-                        mb: 4, 
+
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: 4,
+                        my: 4,
                         backgroundColor: 'background.paper',
                         border: '1px solid',
                         borderColor: 'grey.200'
@@ -208,19 +273,19 @@ const SurveyForm = () => {
                         />
 
                         <FormControl fullWidth>
-                            <InputLabel>Question Type</InputLabel>
+                            <InputLabel>Response Type</InputLabel>
                             <Select
                                 value={questionType}
-                                label="Question Type"
+                                label="Response Type"
                                 onChange={(e) => {
                                     setQuestionType(e.target.value);
                                     setOptions([]);
                                 }}
                                 sx={{ borderRadius: 2 }}
                             >
-                                <MenuItem value="text">Text Response</MenuItem>
-                                <MenuItem value="radio">Single Choice</MenuItem>
-                                <MenuItem value="checkbox">Multiple Choice</MenuItem>
+                                <MenuItem value="text">Free Response</MenuItem>
+                                <MenuItem value="radio">Single Select</MenuItem>
+                                <MenuItem value="checkbox">Multiple Select</MenuItem>
                             </Select>
                         </FormControl>
 
@@ -244,11 +309,11 @@ const SurveyForm = () => {
                                         variant="contained"
                                         onClick={addOption}
                                         startIcon={<AddCircleIcon />}
-                                        sx={{ 
+                                        sx={{
                                             px: 3,
                                             background: 'linear-gradient(45deg, #2c2c2c 30%, #4f4f4f 90%)',
                                             boxShadow: '0 2px 4px rgba(44, 44, 44, .2)',
-                                            '&:hover': { 
+                                            '&:hover': {
                                                 background: 'linear-gradient(45deg, #4f4f4f 30%, #2c2c2c 90%)',
                                             }
                                         }}
@@ -286,12 +351,117 @@ const SurveyForm = () => {
                                 </List>
                             </Box>
                         )}
+                        <UploadWidget onUpload={handleUpload} />
 
+
+                        <Button
+                            variant="outlined"
+                            onClick={addQuestion}
+                            startIcon={<AddCircleIcon />}
+                            sx={{
+                                py: 1.5,
+                                borderColor: 'primary.main',
+                                color: 'primary.main',
+                                '&:hover': {
+                                    backgroundColor: 'action.hover',
+                                    borderColor: 'primary.light'
+                                }
+                            }}
+                        >
+                            Add Question
+                        </Button>
+                        <Snackbar
+                            open={showQuestionFailure}
+                            autoHideDuration={4000}
+                            onClose={() => setShowQuestionFailure(false)}
+                            TransitionComponent={Fade}
+                            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                        >
+                            <Alert
+                                severity="error"
+                                variant="filled"
+                                onClose={() => setShowQuestionFailure(false)}
+                                sx={{ width: '100%' }}
+                            >
+                                {failureQuestionTxt}
+                            </Alert>
+                        </Snackbar>
+
+                    </Stack>
+                </Paper>
+
+                {questions.length > 0 && (
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 4,
+                            mb: 4,
+                            border: '1px solid',
+                            borderColor: 'grey.200'
+                        }}
+                    >
+                        <Typography
+                            variant="h6"
+                            gutterBottom
+                            sx={{ fontWeight: 600, color: 'text.primary' }}
+                        >
+                            Questions Added
+                        </Typography>
+                        <List>
+                            {questions.map((q, index) => (
+                                <ListItem
+                                    key={index}
+                                    sx={{
+                                        display: 'block',
+                                        mb: 2,
+                                        bgcolor: 'grey.50',
+                                        borderRadius: 2,
+                                        p: 2
+                                    }}
+                                >
+                                    <Question question={q} onAnswerChange={() => { }} disabled={true} />
+                                    <Button
+                                        variant="outlined"
+                                        color="error"
+                                        startIcon={<DeleteIcon />}
+                                        onClick={() => {
+                                            const newQuestions = [...questions];
+                                            newQuestions.splice(index, 1);
+                                            setQuestions(newQuestions);
+                                        }}
+                                        sx={{ mt: 2 }}
+                                    >
+                                        Remove Question
+                                    </Button>
+                                </ListItem>
+                            ))}
+                        </List>
+                    </Paper>
+                )}
+
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: 4,
+                        my: 4,
+                        backgroundColor: 'background.paper',
+                        border: '1px solid',
+                        borderColor: 'grey.200'
+                    }}
+                >
+                    <Typography
+                        variant="h6"
+                        gutterBottom
+                        sx={{ fontWeight: 600, color: 'text.primary', mb: 4 }}
+                    >
+                        Survey Options
+                    </Typography>
+                    <Stack spacing={4}>
                         <FormControl fullWidth>
-                            <InputLabel>Select Tags</InputLabel>
+                            <InputLabel>Select Tags that best describe this survey</InputLabel>
                             <Select
                                 value=""
-                                label="Select Tags"
+                                label="Select Tags that best describe this survey"
                                 onChange={handleTagSelection}
                                 sx={{ borderRadius: 2 }}
                             >
@@ -322,134 +492,57 @@ const SurveyForm = () => {
                                 />
                             ))}
                         </Box>
-                        {/* <UploadWidget 
-                        variant="outlined"
-                            onClick={UploadWidget}
-                            startIcon={<AddCircleIcon />}
-                            sx={{
-                                py: 1.5,
-                                borderColor: 'primary.main',
-                                color: 'primary.main',
-                                '&:hover': {
-                                    backgroundColor: 'action.hover',
-                                    borderColor: 'primary.light'
-                                }
-                            }}
-                              
-                        /> */}
-                        <UploadWidget onUpload={handleUpload} />
-                        {/* <Button
-                            variant="outlined"
-                            onClick={UploadWidget}
-                            startIcon={<AddCircleIcon />}
-                            sx={{
-                                py: 1.5,
-                                borderColor: 'primary.main',
-                                color: 'primary.main',
-                                '&:hover': {
-                                    backgroundColor: 'action.hover',
-                                    borderColor: 'primary.light'
-                                }
-                            }}
-                        >
-                            Upload 
-                        </Button> */}
 
-                        <Button
-                            variant="outlined"
-                            onClick={addQuestion}
-                            startIcon={<AddCircleIcon />}
-                            sx={{
-                                py: 1.5,
-                                borderColor: 'primary.main',
-                                color: 'primary.main',
-                                '&:hover': { 
-                                    backgroundColor: 'action.hover',
-                                    borderColor: 'primary.light'
-                                }
-                            }}
-                        >
-                            Add Question
-                        </Button>
+                        <FormControlLabel control={<Checkbox checked={sharePublicly} />}
+                            label="Allow this survey to appear in the Trending Surveys page"
+                            onChange={() => setSharePublicly(!sharePublicly)}
+                        />
                     </Stack>
                 </Paper>
 
-                {questions.length > 0 && (
-                    <Paper 
-                        elevation={0} 
-                        sx={{ 
-                            p: 4, 
-                            mb: 4,
-                            border: '1px solid',
-                            borderColor: 'grey.200'
-                        }}
-                    >
-                        <Typography 
-                            variant="h6" 
-                            gutterBottom
-                            sx={{ fontWeight: 600, color: 'text.primary' }}
-                        >
-                            Questions Added
-                        </Typography>
-                        <List>
-                            {questions.map((q, index) => (
-                                <ListItem
-                                    key={index}
-                                    sx={{ 
-                                        display: 'block', 
-                                        mb: 2,
-                                        bgcolor: 'grey.50',
-                                        borderRadius: 2,
-                                        p: 2
-                                    }}
-                                >
-                                    <Question question={q} onAnswerChange={() => { }} disabled={true} />
-                                    <Button
-                                        variant="outlined"
-                                        color="error"
-                                        startIcon={<DeleteIcon />}
-                                        onClick={() => {
-                                            const newQuestions = [...questions];
-                                            newQuestions.splice(index, 1);
-                                            setQuestions(newQuestions);
-                                        }}
-                                        sx={{ mt: 2 }}
-                                    >
-                                        Remove Question
-                                    </Button>
-                                </ListItem>
-                            ))}
-                        </List>
-                    </Paper>
-                )}
-
-<<<<<<< Updated upstream
-=======
-                
 
 
-
-
-
-
->>>>>>> Stashed changes
                 <Button
                     variant="contained"
                     size="large"
                     fullWidth
                     onClick={handleSubmit}
                     endIcon={<SendIcon />}
+                    disabled={loading}
                     sx={{
                         py: 2,
                         background: 'linear-gradient(45deg, #2c2c2c 30%, #4f4f4f 90%)',
                         boxShadow: '0 3px 5px 2px rgba(44, 44, 44, .3)',
-                        '&:hover': { 
+                        '&:hover': {
                             background: 'linear-gradient(45deg, #4f4f4f 30%, #2c2c2c 90%)',
                         }
                     }}
                 >
                     Submit Survey
                 </Button>
+
+                {loading && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                        <CircularProgress size={40} thickness={4} />
+                    </Box>
+                )}
+
+                <Snackbar
+                    open={showSurveyFailure}
+                    autoHideDuration={4000}
+                    onClose={() => setShowSurveyFailure(false)}
+                    TransitionComponent={Fade}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                >
+                    <Alert
+                        severity="error"
+                        variant="filled"
+                        onClose={() => setShowSurveyFailure(false)}
+                        sx={{ width: '100%' }}
+                    >
+                        {failureSurveyTxt}
+                    </Alert>
+                </Snackbar>
             </Container>
         </ThemeProvider>
     );

@@ -23,15 +23,12 @@ const theme = createTheme({
   // ... (copy the theme configuration from your SurveyView component)
 });
 
-
-
 const SurveyDetailView = () => {
   const { surveyId } = useParams();
   const navigate = useNavigate();
   const [survey, setSurvey] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // const [images, setImages] = useState([]);
 
   useEffect(() => {
     const fetchSurvey = async () => {
@@ -49,22 +46,9 @@ const SurveyDetailView = () => {
         setLoading(false);
       }
     };
+
     fetchSurvey();
   }, [surveyId]);
-//     const fetchImages = async () => {
-//       try {
-//         const querySnapshot = await getDocs(collection(db, "images"));
-//         const imageUrls = querySnapshot.docs.map(doc => doc.data().url);
-//         setImages(imageUrls);
-//       } catch (err) {
-//         console.error('Error fetching images:', err);
-//       }
-//     };
-
-//     fetchSurvey();
-//     fetchImages();
-// }, [surveyId]);
-
 
   if (loading) {
     return (
@@ -86,7 +70,7 @@ const SurveyDetailView = () => {
             {error || 'Survey not found'}
           </Typography>
           <Box sx={{ mt: 2, textAlign: 'center' }}>
-            <Button 
+            <Button
               startIcon={<ArrowBackIcon />}
               onClick={() => navigate(-1)}
             >
@@ -108,17 +92,17 @@ const SurveyDetailView = () => {
           >
             <ArrowBackIcon />
           </IconButton>
-          
-          <Typography 
-            variant="h4" 
-            sx={{ 
+
+          <Typography
+            variant="h4"
+            sx={{
               fontWeight: 700,
               color: 'primary.main'
             }}
           >
             {survey.title}
           </Typography>
-          
+
           {survey.tags && survey.tags.length > 0 && (
             <Box sx={{ mt: 2 }}>
               {survey.tags.map((tag, index) => (
@@ -126,8 +110,8 @@ const SurveyDetailView = () => {
                   key={index}
                   label={tag}
                   size="small"
-                  sx={{ 
-                    mr: 1, 
+                  sx={{
+                    mr: 1,
                     mb: 1,
                     bgcolor: 'grey.100',
                   }}
@@ -137,10 +121,9 @@ const SurveyDetailView = () => {
           )}
         </Box>
 
-
-        <Paper 
+        <Paper
           elevation={0}
-          sx={{ 
+          sx={{
             p: 4,
             border: '1px solid',
             borderColor: 'grey.200',
@@ -149,29 +132,29 @@ const SurveyDetailView = () => {
 
 
         >
-{/* Image Gallery */}
-{survey.images && survey.images.length > 0 && (
+          {/* Image Gallery */}
+          {survey.images && survey.images.length > 0 && (
             <div>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
                 Image Gallery
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 {survey.images.map((url, index) => (
-                  <img 
-                    key={index} 
-                    src={url} 
-                    alt={`Uploaded ${index}`} 
-                    style={{ width: "300px", height: "auto", margin: "10px" }} 
+                  <img
+                    key={index}
+                    src={url}
+                    alt={`Uploaded ${index}`}
+                    style={{ width: "300px", height: "auto", margin: "10px" }}
                   />
                 ))}
               </Box>
             </div>
           )}
-          
-          <Typography 
-            variant="h6" 
+
+          <Typography
+            variant="h6"
             gutterBottom
-            sx={{ 
+            sx={{
               fontWeight: 600,
               color: 'text.primary',
               mb: 3
@@ -180,14 +163,13 @@ const SurveyDetailView = () => {
             Questions
           </Typography>
 
-
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: 3 
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3
           }}>
             {survey.questions.map((question, index) => (
-              <Box 
+              <Box
                 key={index}
                 sx={{
                   p: 3,
@@ -197,11 +179,11 @@ const SurveyDetailView = () => {
                   borderColor: 'grey.100'
                 }}
               >
-                <Typography 
-                  variant="subtitle1" 
-                  sx={{ 
+                <Typography
+                  variant="subtitle1"
+                  sx={{
                     fontWeight: 600,
-                    mb: 2 
+                    mb: 2
                   }}
                 >
                   Question {index + 1}
@@ -209,7 +191,7 @@ const SurveyDetailView = () => {
                 <Question
                   question={question}
                   disabled={true}
-                  onAnswerChange={() => {}}
+                  onAnswerChange={() => { }}
                 />
               </Box>
             ))}

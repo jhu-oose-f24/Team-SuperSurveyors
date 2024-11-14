@@ -1,9 +1,10 @@
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signOut } from 'firebase/auth';
-import { /* getFirestore, */ doc, setDoc, getDoc, arrayUnion, updateDoc } from 'firebase/firestore';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signOut, GoogleAuthProvider, getAdditionalUserInfo, signInWithPopup } from 'firebase/auth';
+import { doc, setDoc, getDoc, arrayUnion, updateDoc } from 'firebase/firestore';
 import User from '../models/User';
 import { db } from '../firebase.js';
 
 const auth = getAuth();
+const provider = new GoogleAuthProvider();
 // const db = getFirestore();
 
 // Register a new user with email and password
@@ -39,7 +40,7 @@ export const loginUser = async (email, password) => {
 
         if (userSnap.exists()) {
             const userData = userSnap.data();
-            return new User(user.uid, userData.displayName, user.email, user.photoURL);
+            return new User(user.uid, userData.displayName, user.email, user.photoURL, user.surveys, user.coins);
         } else {
             console.log('No such user document!');
             return null;
@@ -48,6 +49,40 @@ export const loginUser = async (email, password) => {
         throw error;
     }
 };
+
+// Login a user with their Google account
+export const loginGoogleUser = async () => {
+    try {
+        
+        const userCredential = await signInWithPopup(auth, provider);
+        const user = userCredential.user;
+
+        // Fetch user data from Firestore
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            return {
+                isNewUser: false,
+                user: new User(user.uid, userData.displayName, user.email, user.photoURL)
+            };
+        } else {
+            const userRef = doc(db, 'users', user.uid);
+            const newUser = new User(user.uid, user.displayName, user.email, user.photoURL, []);
+            await setDoc(userRef, newUser.toJson());
+
+            return {
+                isNewUser: true,
+                user: newUser
+            };
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+    
+}
 
 // Update user profile
 export const updateUserProfile = async (uid, displayName, photoURL) => {
@@ -61,7 +96,7 @@ export const updateUserProfile = async (uid, displayName, photoURL) => {
             const userRef = doc(db, 'users', uid);
             await setDoc(userRef, { displayName, photoURL }, { merge: true });
 
-            return new User(uid, displayName, user.email, photoURL);
+            return new User(uid, displayName, user.email, photoURL, [], user.coins);
         }
         throw new Error('No user is signed in');
     } catch (error) {
@@ -84,10 +119,22 @@ export const logoutUser = async () => {
 export const getCurrentUser = () => {
     const user = auth.currentUser;
     if (user) {
-        return new User(user.uid, user.displayName, user.email, user.photoURL, user.surveys);
+        return new User(user.uid, user.displayName, user.email, user.photoURL, user.surveys, user.coins);
     }
     return null;
 };
+
+export const getUserInfo = async () => {
+    const user = auth.currentUser;
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+        const userData = userSnap.data();
+        return new User(userData.uid, userData.displayName, userData.email, userData.photoURL, userData.surveys, userData.coins);
+    } else {
+        return getCurrentUser();
+    }
+}
 
 // Add a survey ID to the user's surveys array
 export const addSurveyToUser = async (surveyId) => {

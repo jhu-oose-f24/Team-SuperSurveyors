@@ -1,5 +1,5 @@
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, getDocs, query, where, documentId, setDoc, doc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, query, where, documentId, setDoc, doc, getDoc, orderBy } from 'firebase/firestore';
 
 const auth = getAuth();
 const db = getFirestore();
@@ -77,6 +77,54 @@ export const getRandomSurvey = async () => {
     }
 }
 
+export const getTrendingSurveys = async () => {
+
+    try {
+        
+        let resultsQ = query(collection(db, 'surveyResults'),
+                            orderBy('responseCount', 'desc'),
+                            );
+
+        const resultsSnapshot = await getDocs(resultsQ);
+        let resultsData = resultsSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        // Filter to the top 10 ids and get survey details in one go
+        const surveyIds = resultsData.slice(0, 10).map(result => result.id);
+
+        // Fetch all survey details in one batch
+        const surveysQ = query(
+            collection(db, 'surveys'),
+            where(documentId(), 'in', surveyIds) 
+        );
+        const surveysSnapshot = await getDocs(surveysQ);
+
+        // Map survey data to IDs for quick lookup
+        const surveyDataMap = new Map();
+        surveysSnapshot.forEach(doc => surveyDataMap.set(doc.id, doc.data()));
+
+        // Prepare final survey data
+        const surveys = resultsData
+            .filter(result => surveyDataMap.has(result.id) && surveyDataMap.get(result.id).sharePublicly)
+            .map(result => {
+                const surveyData = surveyDataMap.get(result.id);
+                return {
+                    id: result.id,
+                    responseCount: result.responseCount,
+                    title: surveyData.title,
+                    tags: surveyData.tags,
+                };
+            })
+            .slice(0, 10);
+
+        return surveys;
+    } catch (error) {
+        console.error('Error fetching trending surveys:', error);
+    }
+}
+
 export const updateSurvey = async (surveyId, updatedSurvey) => {
     try {
         await setDoc(doc(db, 'surveys', surveyId), updatedSurvey);
@@ -84,3 +132,23 @@ export const updateSurvey = async (surveyId, updatedSurvey) => {
         console.error('Error updating survey:', error);
     }
 };
+
+export const checkCurrency = async () => {
+    const user = auth.currentUser;
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+        return userSnap.data().coins > 2;
+    } else {
+        return false;
+    }
+}
+
+export const updateCurrency = async (change) => {
+    const user = auth.currentUser;
+    const userRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userRef);
+    let data = userDoc.data();
+    data.coins = data.coins + change;
+    await setDoc(doc(db, 'users', user.uid), data);
+}

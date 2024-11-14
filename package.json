@@ -9,6 +9,7 @@
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^6.1.6",
     "@mui/material": "^6.1.6",
+    "@react-oauth/google": "^0.12.1",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -16,6 +17,7 @@
     "bootstrap": "^5.3.3",
     "chart.js": "^4.1.1",
     "firebase": "^10.13.2",
+    "openai": "^4.72.0",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.5",
     "react-chartjs-2": "^5.2.0",
@@ -34,7 +36,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -b main -d build"
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [

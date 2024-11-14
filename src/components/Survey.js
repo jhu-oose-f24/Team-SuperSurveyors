@@ -94,6 +94,7 @@ const SurveyForm = () => {
     const [newOption, setNewOption] = useState('');
     const [tags, setTags] = useState([]);
     const [selectedTags, setSelectedTags] = useState([]);
+    const [images, setImages] = useState([]); // 添加状态来存储图片 URL
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -108,6 +109,12 @@ const SurveyForm = () => {
         };
         fetchTags();
     }, []);
+
+    //add image
+    const handleUpload = (url) => {
+        setImages([...images, url]); 
+    };
+
 
     const handleTagSelection = (event) => {
         const value = event.target.value;
@@ -131,11 +138,14 @@ const SurveyForm = () => {
         }
     };
 
+    
+
     const handleSubmit = async () => {
         const survey = {
             title: document.getElementById('surveyTitle').value,
             questions,
             tags: selectedTags,
+            images,
         };
 
         const docRef = await addDoc(collection(db, 'surveys'), survey);
@@ -312,6 +322,38 @@ const SurveyForm = () => {
                                 />
                             ))}
                         </Box>
+                        {/* <UploadWidget 
+                        variant="outlined"
+                            onClick={UploadWidget}
+                            startIcon={<AddCircleIcon />}
+                            sx={{
+                                py: 1.5,
+                                borderColor: 'primary.main',
+                                color: 'primary.main',
+                                '&:hover': {
+                                    backgroundColor: 'action.hover',
+                                    borderColor: 'primary.light'
+                                }
+                            }}
+                              
+                        /> */}
+                        <UploadWidget onUpload={handleUpload} />
+                        {/* <Button
+                            variant="outlined"
+                            onClick={UploadWidget}
+                            startIcon={<AddCircleIcon />}
+                            sx={{
+                                py: 1.5,
+                                borderColor: 'primary.main',
+                                color: 'primary.main',
+                                '&:hover': {
+                                    backgroundColor: 'action.hover',
+                                    borderColor: 'primary.light'
+                                }
+                            }}
+                        >
+                            Upload 
+                        </Button> */}
 
                         <Button
                             variant="outlined"
@@ -381,6 +423,16 @@ const SurveyForm = () => {
                     </Paper>
                 )}
 
+<<<<<<< Updated upstream
+=======
+                
+
+
+
+
+
+
+>>>>>>> Stashed changes
                 <Button
                     variant="contained"
                     size="large"

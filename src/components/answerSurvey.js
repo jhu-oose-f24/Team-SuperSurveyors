@@ -32,6 +32,7 @@ const Survey = () => {
     const [submissionSuccess, setSubmissionSuccess] = useState(false);
     const [showFailure, setShowFailure] = useState(false);
     const [failureTxt, setFailureTxt] = useState('');
+    const [images, setImages] = useState([]); 
     const pqRef = useRef(new PriorityQueue((s1, s2) => (s1[0] > s2[0] ? 1 : s1[0] === s2[0] ? 0 : -1)));
     const navigate = useNavigate();
 
@@ -173,6 +174,7 @@ const Survey = () => {
 
         setSurveyId(surveyData.id);
         setSurveyTitle(surveyData.title);
+        setImages(surveyData.images || []); 
 
         setQuestions(
             surveyData.questions.map((question, index) => ({
@@ -384,6 +386,25 @@ const Survey = () => {
                 >
                     {surveyTitle}
                 </Typography>
+
+                  {/* Image Gallery */}
+                  {images.length > 0 && (
+                    <Box sx={{ mt: 4 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Image Gallery
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                            {images.map((url, index) => (
+                                <img 
+                                    key={index} 
+                                    src={url} 
+                                    alt={`Survey Image ${index}`} 
+                                    style={{ width: '200px', height: 'auto', margin: '10px' }}
+                                />
+                            ))}
+                        </Box>
+                    </Box>
+                )}
 
                 <Stack spacing={4}>
                     {questions.map((question) => (

@@ -32,6 +32,7 @@ const Survey = () => {
     const [submissionSuccess, setSubmissionSuccess] = useState(false);
     const [showFailure, setShowFailure] = useState(false);
     const [failureTxt, setFailureTxt] = useState('');
+    const [images, setImages] = useState([]);
     const pqRef = useRef(new PriorityQueue((s1, s2) => (s1[0] > s2[0] ? 1 : s1[0] === s2[0] ? 0 : -1)));
     const { surveyId: paramSurveyId } = useParams();
 
@@ -199,6 +200,7 @@ const Survey = () => {
 
         setSurveyId(surveyData.id);
         setSurveyTitle(surveyData.title);
+        setImages(surveyData.images || []);
 
         setQuestions(
             surveyData.questions.map((question, index) => ({
@@ -428,9 +430,6 @@ const Survey = () => {
                 >
                     {surveyTitle}
                 </Typography>
-
-
-
 
                 <Stack spacing={4}>
                     {questions.map((question) => (

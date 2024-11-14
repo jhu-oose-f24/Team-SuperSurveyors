@@ -35,9 +35,13 @@ const Survey = () => {
     const [submissionSuccess, setSubmissionSuccess] = useState(false);
     const [showFailure, setShowFailure] = useState(false);
     const [failureTxt, setFailureTxt] = useState('');
-    const [images, setImages] = useState([]);
     const pqRef = useRef(new PriorityQueue((s1, s2) => (s1[0] > s2[0] ? 1 : s1[0] === s2[0] ? 0 : -1)));
     const { surveyId: paramSurveyId } = useParams();
+
+    // [1] Add states for videos and audios
+    const [images, setImages] = useState([]);
+    const [videos, setVideos] = useState([]);
+    const [audios, setAudios] = useState([]);
 
     const navigate = useNavigate();
 
@@ -135,6 +139,13 @@ const Survey = () => {
                 const surveyData = { id: docSnap.id, ...docSnap.data() };
                 setSurveyId(surveyData.id);
                 setSurveyTitle(surveyData.title);
+            
+                // [2] Populate images, videos, and audios from Firestore data
+                setQuestions(surveyData.questions.map((question, index) => ({ ...question, id: index.toString() })));
+                setImages(surveyData.images || []);
+                setVideos(surveyData.videos || []);
+                setAudios(surveyData.audios || []);
+
                 setQuestions(
                     surveyData.questions.map((question, index) => ({
                         ...question,
@@ -452,6 +463,35 @@ const Survey = () => {
                         </Box>
                     </Box>
                 )}
+
+                    {/* Video Gallery - New Section */}
+                    {videos.length > 0 && (
+                    <Box sx={{ mt: 4 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Video Gallery
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                            {videos.map((url, index) => (
+                                <video key={index} src={url} controls style={{ width: '300px', height: 'auto', margin: '10px' }} />
+                            ))}
+                        </Box>
+                    </Box>
+                )}
+
+                {/* Audio Gallery - New Section */}
+                {audios.length > 0 && (
+                    <Box sx={{ mt: 4 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Audio Gallery
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                            {audios.map((url, index) => (
+                                <audio key={index} src={url} controls style={{ margin: '10px' }} />
+                            ))}
+                        </Box>
+                    </Box>
+                )}
+
 
 
                 <Stack spacing={4}>

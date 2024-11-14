@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate,useParams } from 'react-router-dom';
-import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc, updateDoc, increment } from 'firebase/firestore';import { db } from '../firebase';
+import { useNavigate, useParams } from 'react-router-dom';
+import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc, updateDoc, increment } from 'firebase/firestore'; import { db } from '../firebase';
 import Question from './Question/Question';
 import { getRandomSurvey } from '../services/surveyService';
 import { getAuth } from 'firebase/auth';
@@ -22,7 +22,6 @@ import SendIcon from '@mui/icons-material/Send';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { generateTagsForSurvey, updateUserTags } from './taggingService';
-import CreateAndSharing from './createAndSharing';
 
 const Survey = () => {
     const [questions, setQuestions] = useState([]);
@@ -95,8 +94,8 @@ const Survey = () => {
                 }
             });
 
-            let surveyInfo = userOwnedSurveys.length > 0 ? 
-                query(collection(db, 'surveys'), where(documentId(), 'not-in', userOwnedSurveys)) : 
+            let surveyInfo = userOwnedSurveys.length > 0 ?
+                query(collection(db, 'surveys'), where(documentId(), 'not-in', userOwnedSurveys)) :
                 query(collection(db, 'surveys'));
 
             const allSurveysSnapshot = await getDocs(surveyInfo);
@@ -155,7 +154,7 @@ const Survey = () => {
         setLoading(true);
         setSubmissionSuccess(false);
         let surveyData;
-        
+
         if (!ignoreIncompleteSurvey) {
             const incompleteSurvey = await fetchIncompleteSurvey();
 
@@ -318,7 +317,7 @@ const Survey = () => {
         }
     };
 
-    useEffect(() =>  {
+    useEffect(() => {
         if (paramSurveyId) {
             fetchSurveyById(paramSurveyId);
         } else {
@@ -330,10 +329,10 @@ const Survey = () => {
 
     if (loading) {
         return (
-            <Container sx={{ 
-                height: '100vh', 
-                display: 'flex', 
-                alignItems: 'center', 
+            <Container sx={{
+                height: '100vh',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'center'
             }}>
                 <CircularProgress size={60} thickness={4} />
@@ -344,10 +343,10 @@ const Survey = () => {
     if (submissionSuccess) {
         return (
             <Container maxWidth="sm" sx={{ mt: 8 }}>
-                <Paper 
-                    elevation={0} 
-                    sx={{ 
-                        p: 4, 
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: 4,
                         textAlign: 'center',
                         border: '1px solid',
                         borderColor: 'grey.200',
@@ -396,7 +395,7 @@ const Survey = () => {
                         fetchSurveys(true);
                     }}
                     fullWidth
-                    sx={{ 
+                    sx={{
                         py: 1.5,
                         mb: 4,
                         borderRadius: 2
@@ -406,22 +405,22 @@ const Survey = () => {
                 </Button>
             </Box>
 
-            <Paper 
+            <Paper
                 elevation={0}
                 component="form"
                 onSubmit={handleSubmit}
-                sx={{ 
+                sx={{
                     p: 4,
                     border: '1px solid',
                     borderColor: 'grey.200',
                     borderRadius: 2
                 }}
             >
-                <Typography 
-                    variant="h4" 
-                    align="center" 
-                    gutterBottom 
-                    sx={{ 
+                <Typography
+                    variant="h4"
+                    align="center"
+                    gutterBottom
+                    sx={{
                         mb: 4,
                         fontWeight: 700,
                         color: 'grey.900'
@@ -430,7 +429,7 @@ const Survey = () => {
                     {surveyTitle}
                 </Typography>
 
-                <CreateAndSharing surveyId={surveyId} />
+
 
 
                 <Stack spacing={4}>
@@ -466,8 +465,8 @@ const Survey = () => {
                 TransitionComponent={Fade}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
-                <Alert 
-                    severity="error" 
+                <Alert
+                    severity="error"
                     variant="filled"
                     onClose={() => setShowFailure(false)}
                     sx={{ width: '100%' }}

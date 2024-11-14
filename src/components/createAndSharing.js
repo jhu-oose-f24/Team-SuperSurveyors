@@ -4,27 +4,7 @@ import { Button, Box } from '@mui/material';
 import ShareIcon from '@mui/icons-material/Share';
 
 const CreateAndSharing = ({ surveyId }) => {
-    const shareSurvey = () => {
-        const surveyLink = `${window.location.origin}/#/answer/${surveyId}`;
 
-        if (navigator.share) {
-            // Use the Web Share API if available
-            navigator.share({
-                title: 'Survey Invitation',
-                text: 'Please take this survey!',
-                url: surveyLink,
-            })
-            .then(() => console.log('Successful share'))
-            .catch((error) => console.log('Error sharing', error));
-        } else {
-            // Fallback: Copy the link to the clipboard
-            navigator.clipboard.writeText(surveyLink).then(() => {
-                alert('Link copied to clipboard!');
-            }, (err) => {
-                console.error('Could not copy text: ', err);
-            });
-        }
-    };
 
     return (
         <Box
@@ -49,5 +29,26 @@ const CreateAndSharing = ({ surveyId }) => {
         </Box>
     );
 };
+export function shareSurvey(surveyId) {
+    const surveyLink = `${window.location.origin}/#/answer/${surveyId}`;
+
+    if (navigator.share) {
+        // Use the Web Share API if available
+        navigator.share({
+            title: 'Survey Invitation',
+            text: 'Please take this survey!',
+            url: surveyLink,
+        })
+            .then(() => console.log('Successful share'))
+            .catch((error) => console.log('Error sharing', error));
+    } else {
+        // Fallback: Copy the link to the clipboard
+        navigator.clipboard.writeText(surveyLink).then(() => {
+            alert('Link copied to clipboard!');
+        }, (err) => {
+            console.error('Could not copy text: ', err);
+        });
+    }
+}
 
 export default CreateAndSharing;

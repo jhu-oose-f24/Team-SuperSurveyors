@@ -14,7 +14,8 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Question from './Question/Question';
-import { db } from '../firebase';
+
+import { db, collection, getDocs } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 // Use the same theme as your SurveyView component
@@ -22,12 +23,15 @@ const theme = createTheme({
   // ... (copy the theme configuration from your SurveyView component)
 });
 
+
+
 const SurveyDetailView = () => {
   const { surveyId } = useParams();
   const navigate = useNavigate();
   const [survey, setSurvey] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // const [images, setImages] = useState([]);
 
   useEffect(() => {
     const fetchSurvey = async () => {
@@ -45,9 +49,22 @@ const SurveyDetailView = () => {
         setLoading(false);
       }
     };
-
     fetchSurvey();
   }, [surveyId]);
+//     const fetchImages = async () => {
+//       try {
+//         const querySnapshot = await getDocs(collection(db, "images"));
+//         const imageUrls = querySnapshot.docs.map(doc => doc.data().url);
+//         setImages(imageUrls);
+//       } catch (err) {
+//         console.error('Error fetching images:', err);
+//       }
+//     };
+
+//     fetchSurvey();
+//     fetchImages();
+// }, [surveyId]);
+
 
   if (loading) {
     return (
@@ -120,6 +137,7 @@ const SurveyDetailView = () => {
           )}
         </Box>
 
+
         <Paper 
           elevation={0}
           sx={{ 
@@ -128,7 +146,28 @@ const SurveyDetailView = () => {
             borderColor: 'grey.200',
             borderRadius: 2
           }}
+
+
         >
+{/* Image Gallery */}
+{survey.images && survey.images.length > 0 && (
+            <div>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                Image Gallery
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                {survey.images.map((url, index) => (
+                  <img 
+                    key={index} 
+                    src={url} 
+                    alt={`Uploaded ${index}`} 
+                    style={{ width: "300px", height: "auto", margin: "10px" }} 
+                  />
+                ))}
+              </Box>
+            </div>
+          )}
+          
           <Typography 
             variant="h6" 
             gutterBottom
@@ -140,6 +179,7 @@ const SurveyDetailView = () => {
           >
             Questions
           </Typography>
+
 
           <Box sx={{ 
             display: 'flex', 

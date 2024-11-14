@@ -22,7 +22,7 @@ const App = () => {
       {/* NavBar will not show on landing page */}
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        
+
         {/* Auth Routes - with NavBar */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
@@ -36,6 +36,7 @@ const App = () => {
           <Route path="/create" element={<SurveyForm />} />
           <Route path="/view" element={<SurveyView />} />
           <Route path="/profile" element={<UserView />} />
+          <Route path="/answer/:surveyId" element={<AnswerSurvey />} />
           <Route path="/answer" element={<AnswerSurvey />} />
           <Route path="/trending" element={<TrendingView />} />
           <Route path="/survey-view/:surveyId" element={<SurveyDetailView />} />

@@ -75,6 +75,8 @@ const ProtectedLayout = () => {
           <Route path="/view" element={<SurveyView />} />
           <Route path="/profile" element={<UserView />} />
           <Route path="/answer" element={<AnswerSurvey />} />
+          <Route path="/answer/:surveyId" element={<AnswerSurvey />} />
+
           <Route path="/trending" element={<TrendingView />} />
           <Route path="/survey-view/:surveyId" element={<SurveyDetailView />} />
           <Route path="/survey-results/:surveyId" element={<SurveyResults />} />

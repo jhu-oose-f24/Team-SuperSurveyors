@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc, updateDoc, increment } from 'firebase/firestore';
-import { db } from '../firebase';
+import { useNavigate,useParams } from 'react-router-dom';
+import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc, updateDoc, increment } from 'firebase/firestore';import { db } from '../firebase';
 import Question from './Question/Question';
 import { getRandomSurvey } from '../services/surveyService';
 import { getAuth } from 'firebase/auth';
@@ -22,6 +21,8 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import SendIcon from '@mui/icons-material/Send';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { generateTagsForSurvey, updateUserTags } from './taggingService';
+import CreateAndSharing from './createAndSharing';
 
 const Survey = () => {
     const [questions, setQuestions] = useState([]);
@@ -33,6 +34,8 @@ const Survey = () => {
     const [showFailure, setShowFailure] = useState(false);
     const [failureTxt, setFailureTxt] = useState('');
     const pqRef = useRef(new PriorityQueue((s1, s2) => (s1[0] > s2[0] ? 1 : s1[0] === s2[0] ? 0 : -1)));
+    const { surveyId: paramSurveyId } = useParams();
+
     const navigate = useNavigate();
 
     const auth = getAuth();
@@ -119,6 +122,30 @@ const Survey = () => {
             return pqRef.current;
         } catch (error) {
             console.error('Error fetching tagged survey recommendation:', error);
+        }
+    };
+    const fetchSurveyById = async (surveyId) => {
+        try {
+            const docRef = doc(db, 'surveys', surveyId);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const surveyData = { id: docSnap.id, ...docSnap.data() };
+                setSurveyId(surveyData.id);
+                setSurveyTitle(surveyData.title);
+                setQuestions(
+                    surveyData.questions.map((question, index) => ({
+                        ...question,
+                        id: index.toString(),
+                    }))
+                );
+                setLoading(false);
+            } else {
+                console.error('Survey not found');
+                setLoading(false);
+            }
+        } catch (error) {
+            console.error('Error fetching survey:', error);
+            setLoading(false);
         }
     };
 
@@ -236,6 +263,17 @@ const Survey = () => {
         }
 
         try {
+            const userId = getUserId();
+            // Generate tags based on the title and questions of the current question
+            const surveyQuestions = questions.map(q => q.text);
+            const tags = await generateTagsForSurvey(surveyTitle, surveyQuestions);
+
+            if (tags.length > 0) {
+                console.log('Generated Tag:', tags[0]);
+                await updateUserTags(userId, tags[0]);
+            }
+
+
             const surveyResultsRef = doc(db, 'surveyResults', surveyId);
             await updateDoc(surveyResultsRef, { responseCount: increment(1) });
 
@@ -280,10 +318,14 @@ const Survey = () => {
         }
     };
 
-    useEffect(() => {
-        fetchSurveyBasedOnTag().then(() => {
-            fetchSurveys();
-        });
+    useEffect(() =>  {
+        if (paramSurveyId) {
+            fetchSurveyById(paramSurveyId);
+        } else {
+            fetchSurveyBasedOnTag().then(() => {
+                fetchSurveys();
+            });
+        }
     }, []);
 
     if (loading) {
@@ -387,6 +429,9 @@ const Survey = () => {
                 >
                     {surveyTitle}
                 </Typography>
+
+                <CreateAndSharing surveyId={surveyId} />
+
 
                 <Stack spacing={4}>
                     {questions.map((question) => (

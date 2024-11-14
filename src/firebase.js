@@ -1,6 +1,9 @@
 // src/firebase.js
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+//import { getFirestore } from "firebase/firestore";
+//import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, doc, getDoc } from 'firebase/firestore';
+
 
 // Config for testsupersurvey.firebaseapp.com
 // const testFirebaseConfig = {
@@ -27,4 +30,5 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-export { db };
+//export { db, addDoc, collection};
+export { db, collection, addDoc, getDocs, doc, getDoc };

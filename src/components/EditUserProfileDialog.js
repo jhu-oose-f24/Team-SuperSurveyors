@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { updateUserProfile } from '../services/userService'; // Import the update function
+import { UploadWidget } from '../services/uploadService'; // Import the UploadWidget component
 
 const EditUserProfileDialog = ({ show, onHide, userId, displayName, photoURL, onDisplayNameChange, onPhotoURLChange, onSave }) => {
+    const [images, setImages] = useState([]);
 
     const handleSaveChanges = async () => {
         try {
@@ -40,6 +42,11 @@ const EditUserProfileDialog = ({ show, onHide, userId, displayName, photoURL, on
         onHide(); // Close the modal
     };
 
+    // Handle image upload
+    const handleUpload = (url) => {
+        onPhotoURLChange(url); // Update photoURL with the uploaded image URL
+    };
+
     return (
         <Modal show={show} onHide={handleCloseAndSave} centered>
             <Modal.Header closeButton>
@@ -62,6 +69,11 @@ const EditUserProfileDialog = ({ show, onHide, userId, displayName, photoURL, on
                             value={photoURL}
                             onChange={(e) => onPhotoURLChange(e.target.value)}
                         />
+                    </Form.Group>
+                    {/* Image Upload Section */}
+                    <Form.Group className="mb-3">
+                        <Form.Label>Upload Profile Image</Form.Label>
+                        <UploadWidget onUpload={handleUpload} />
                     </Form.Group>
                 </Form>
             </Modal.Body>

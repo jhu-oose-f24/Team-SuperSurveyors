@@ -23,7 +23,7 @@ Larry Cai (larrythelog), Jianwei Chen (jchen362), Mia Jin (zhengyue4499), Noah P
   * As a user with a survey to share, I want **comprehensive visualization graphics and analysis** so that I get a good and concise idea of my survey results
   * As a user with a survey to share, I want **survey tagging and categorization** so that I can be more organized with my purpose and goals
 * Nice-to-have features:
-  * As a user with a survey to share, I want a **survey search feature** so that I can view other surveys that I find interesting to answer or use
+  * As a user with a survey to share, I want a **survey trendings page** so that I can view other surveys that I find interesting to answer or use
   * As a user with a survey to share, I want a **survey recommendation algorithm** so that I can have my survey shared to people that best matches the kind of people I’d like
 * Non-functional requirements:
   * As a user with a survey to share, I want a **web app** to be able to use this software on my browser

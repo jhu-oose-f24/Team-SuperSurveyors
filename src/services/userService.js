@@ -69,7 +69,7 @@ export const loginGoogleUser = async () => {
             };
         } else {
             const userRef = doc(db, 'users', user.uid);
-            const newUser = new User(user.uid, user.displayName, user.email, user.photoURL, []);
+            const newUser = new User(user.uid, user.displayName, user.email, user.photoURL, [], 10);
             await setDoc(userRef, newUser.toJson());
 
             return {

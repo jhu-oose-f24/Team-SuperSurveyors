@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { loginUser, loginGoogleUser } from '../services/userService';
 import '../styles/signup.css';
 import { getAuth } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 import {
   Container,
   Paper,
@@ -96,16 +98,18 @@ const Login = () => {
   const handleGoogleLogin = async (e) => {
     e.preventDefault();
 
-    await loginGoogleUser().then((userInfo) => {
+    try {
+        let userInfo = await loginGoogleUser();
         if (userInfo.isNewUser) {
             navigate(`/onboarding/${userInfo.user.uid}`);
         } else {
             navigate('/home');
         }
         
-    }).catch((error) => {
+    } catch(error) {
         console.log("Error trying to login with Google: " + error);
-    });
+    };
+
   }
 
   const handleClickShowPassword = () => {

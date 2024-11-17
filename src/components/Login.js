@@ -4,8 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { loginUser, loginGoogleUser } from '../services/userService';
 import '../styles/signup.css';
 import { getAuth } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase';
 import {
   Container,
   Paper,
@@ -39,32 +37,7 @@ const Login = () => {
             navigate('/');
         }
 
-    }, []);
-
-    const handleSignUp = async (e) => {
-        e.preventDefault();
-
-        await loginUser(email, password).then(() => {
-            setShowFailure(false);
-            setShowSuccess(true);
-            navigate('/');
-        }).catch((error) => {
-            console.log("Error trying to login with username/password: " + error);
-
-            if (error.name === 'FirebaseError' && error.code === 'auth/invalid-email') {
-                setFailureMsg("Please enter a valid email address");
-            } else if (error.name === 'FirebaseError' && error.code === 'auth/invalid-credential') {
-                setFailureMsg("Invalid email and/or password. Press Sign Up if you don't have an account!");
-            } else {
-                setFailureMsg(error.message);
-            }
-
-            setShowFailure(true);
-            return;
-        });
-
-        e.preventDefault();
-    }
+    }, [navigate]);
 
   useEffect(() => {
     const auth = getAuth();

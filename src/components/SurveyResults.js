@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getSurveyResponses } from '../components/SurveyView';
 
-import { Pie } from 'react-chartjs-2';
+import { Pie,Bar } from 'react-chartjs-2';
 import { Button, Container, Row, Col, Spinner, Alert, Card } from 'react-bootstrap';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-ChartJS.register(ArcElement, Tooltip, Legend);
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, LinearScale,CategoryScale,BarElement } from 'chart.js';
+ChartJS.register(ArcElement, Tooltip, Legend,LinearScale,CategoryScale,BarElement);
 
 const SurveyResults = () => {
     const { surveyId } = useParams();
@@ -42,6 +42,23 @@ const SurveyResults = () => {
         ],
     };
 
+    // Bar Chart options
+    const barChartOptions = {
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    precision: 0,
+                },
+            },
+        },
+        plugins: {
+            legend: {
+                display: false,
+            },
+        },
+        maintainAspectRatio: false,
+    };
     return (
         <Container className="mt-5">
             <Row className="justify-content-center">
@@ -65,6 +82,20 @@ const SurveyResults = () => {
                                         <Card.Body>
                                             <div style={{ width: '100%', maxWidth: '400px', margin: '0 auto' }}>
                                                 <Pie data={chartData} options={{ maintainAspectRatio: false }} />
+                                            </div>
+                                        </Card.Body>
+                                    </Card>
+                                    <Card className="mb-4">
+                                        <Card.Body>
+                                            <div
+                                                style={{
+                                                    width:'100%',
+                                                    height:'400px',
+                                                }}
+                                                >
+                                                <Bar
+                                                    data = {chartData} options = {barChartOptions}
+                                                />
                                             </div>
                                         </Card.Body>
                                     </Card>

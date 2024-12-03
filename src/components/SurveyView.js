@@ -87,19 +87,6 @@ const theme = createTheme({
   },
 });
 
-export const getSurveyResponses = async (surveyId) => {
-  const responsesRef = collection(db, 'surveyResults', surveyId, 'questions');
-  const querySnapshot = await getDocs(responsesRef);
-
-  const responses = [];
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    responses.push(...data.responses);
-  });
-
-  return responses;
-};
-
 const SurveyView = () => {
   const [surveys, setSurveys] = useState([]);
   const [loading, setLoading] = useState(true);

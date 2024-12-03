@@ -15,10 +15,8 @@ import {
   Divider,
   useTheme,
   useMediaQuery,
-  Badge
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import PollIcon from '@mui/icons-material/Poll';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { onSnapshot, doc } from 'firebase/firestore';
@@ -142,7 +140,7 @@ const NavBar = () => {
               color: 'primary.main'
             }}
           >
-            <PollIcon sx={{ fontSize: 28, mr: 1 }} />
+            <SSLogo width="30" length="30" className='d-inline-block align-top' />
             <Typography
               variant="h6"
               sx={{

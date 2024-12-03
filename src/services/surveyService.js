@@ -125,6 +125,36 @@ export const getTrendingSurveys = async () => {
     }
 }
 
+export const getSurveyInfo = async (surveyId) => {
+    try {
+
+        const surveyQ = query(
+            collection(db, 'surveys'),
+            where(documentId(), '==', surveyId),
+        );
+        const surveySnap = await getDocs(surveyQ);
+        const surveyData = surveySnap.docs[0].data();
+        return surveyData;
+
+    } catch (error) {
+        console.error('Error fetching survey questions: ', error);
+    }
+}
+
+export const getSurveyResponses = async (surveyId) => {
+    const responsesRef = collection(db, 'surveyResults', surveyId, 'questions');
+    const querySnapshot = await getDocs(responsesRef);
+  
+    const responses = [];
+    querySnapshot.forEach((doc) => {
+        responses.push({
+            responses: doc.data().responses
+        });
+    });
+  
+    return responses;
+  };
+
 export const updateSurvey = async (surveyId, updatedSurvey) => {
     try {
         await setDoc(doc(db, 'surveys', surveyId), updatedSurvey);

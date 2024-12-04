@@ -1,76 +1,71 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getAuth } from 'firebase/auth';
+import React from 'react';
 import {
-  Container,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Box,
-  Alert,
-  InputAdornment,
-  Fade,
+    Card,
+    CardContent,
 } from '@mui/material';
 import { Bar } from 'react-chartjs-2';
-import { Card, CardContent, Typography } from '@mui/material';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
 } from 'chart.js';
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const multiChoiceAndSelect = (question, choices, answers) => {
-  // Count the answers
-  const counts = choices.map(choice => 
-    answers.filter(answer => answer === choice).length
-  );
+const MultiChoiceAndSelect = ({ choices, answers }) => {
 
-  // Chart data
-  const data = {
-    labels: choices,
-    datasets: [
-      {
-        label: 'Responses',
-        data: counts,
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 1,
-      },
-    ],
-  };
+    // Count the answers
+    const counts = choices.map(choice =>
+        answers.filter(answer => answer === choice).length
+    );
 
-  // Chart options
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: question,
-      },
-    },
-  };
+    // Chart data
+    const data = {
+        labels: choices,
+        datasets: [
+            {
+                label: 'Responses',
+                data: counts,
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+            },
+        ],
+    };
 
-  return (
-    <Card sx={{ maxWidth: 600, margin: '20px auto' }}>
-      <CardContent>
-        <Typography variant="h6" component="div" gutterBottom>
-          {question}
-        </Typography>
-        <Bar data={data} options={options} />
-      </CardContent>
-    </Card>
-  );
+    // Chart options
+    const options = {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+        },
+        scales: {
+            y: {
+                ticks: {
+                    callback: function (value) {
+                        return Number.isInteger(value) ? value : null; // Only display integer values
+                    },
+                    stepSize: 1, // Increment between ticks
+                },
+                beginAtZero: true // Optional: Starts y-axis at 0
+            }
+        },
+    };
+
+    return (
+        <Card sx={{ maxWidth: 600, margin: '20px auto' }}>
+            <CardContent>
+                <Bar data={data} options={options} />
+            </CardContent>
+        </Card>
+    );
 };
 
-export default multiChoiceAndSelect;
+export default MultiChoiceAndSelect;

@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
-import { Pie } from 'react-chartjs-2';
-// import { Button, Container, Row, Col, Spinner, Alert, Card } from 'react-bootstrap';
 import {
     Container,
     Typography,
@@ -17,6 +14,7 @@ import {
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { getSurveyInfo, getSurveyResponses } from '../services/surveyService';
 import { theme } from './Survey';
+import MultiChoiceAndSelect from './Multi';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -30,6 +28,12 @@ const SurveyResults = () => {
     const [surveyQuestions, setSurveyQuestions] = useState([]);
 
     const navigate = useNavigate();
+
+    let outputType = (type) => {
+        if (type === 'checkbox') return "Multi Response";
+        else if (type === 'radio') return "Single Select";
+        return "Free Response"
+    };
 
     useEffect(() => {
         const fetchResponses = async () => {
@@ -47,25 +51,6 @@ const SurveyResults = () => {
         fetchResponses();
         fetchSurveyQuestions();
     }, [surveyId]);
-
-    // Prepare data for Pie chart
-    const responseCounts = responses.reduce((counts, response) => {
-        counts[response] = (counts[response] || 0) + 1;
-        return counts;
-    }, {});
-
-    const chartData = {
-        labels: Object.keys(responseCounts),
-        datasets: [
-            {
-                label: 'Response Distribution',
-                data: Object.values(responseCounts),
-                backgroundColor: [
-                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
-                ],
-            },
-        ],
-    };
 
     return (
         <ThemeProvider theme={theme}>
@@ -116,31 +101,20 @@ const SurveyResults = () => {
                                                             whiteSpace: 'nowrap'
                                                         }}
                                         >
-                                            Question {index + 1}: {question.text}
+                                            Question {index + 1} ({outputType(question.type)}): {question.text}
                                         </Typography>
                                     </Box>
                                     
-                                    {question.type === 'text' && 
-                                        responses[index].responses.map((response) => (
-                                            <Box>
-                                                <Typography variant="body">
-                                                    {response}
-                                                    
-                                                </Typography>
-                                            </Box>
-                                        ))
-                                    }
+                                    {question.type === 'text' && responses[index].responses.map((response) => (
+                                        <Box>
+                                            <Typography variant="body">
+                                                {response}
+                                            </Typography>
+                                        </Box>
+                                    ))}
                                     
-                                    {question.type === 'radio' && (
-                                        <Typography>
-                                            TODO: Radio
-                                        </Typography>
-                                    )}
-
-                                    {question.type === 'checkbox' && (
-                                        <Typography>
-                                            TODO: Checkbox
-                                        </Typography>
+                                    {(question.type === 'radio' || question.type === 'checkbox') && (
+                                        <MultiChoiceAndSelect choices={question.options} answers={responses[index].responses} />
                                     )}
                                     
                                 </CardContent>
@@ -174,69 +148,6 @@ const SurveyResults = () => {
             </Container>
             
         </ThemeProvider>
-        // <Container className="mt-5">
-        //     <Row className="justify-content-center">
-        //         <Col md={8}>
-        //             <h2 className="text-center mb-4">Results for {surveyName}</h2>
-        //             {loading ? (
-        //                 <div className="text-center">
-        //                     <Spinner animation="border" role="status">
-        //                         <span className="visually-hidden">Loading responses...</span>
-        //                     </Spinner>
-        //                 </div>
-        //             ) : (
-        //                 <>
-        //                     {responses.length === 0 ? (
-        //                         <Alert variant="info" className="text-center">
-        //                             No responses available for this survey.
-        //                         </Alert>
-        //                     ) : (
-        //                         <>
-        //                             <Card className="mb-4">
-        //                                 <Card.Body>
-        //                                     <div style={{ width: '100%', maxWidth: '400px', margin: '0 auto' }}>
-        //                                         <Pie data={chartData} options={{ maintainAspectRatio: false }} />
-        //                                     </div>
-        //                                 </Card.Body>
-        //                             </Card>
-
-        //                             <Card className="mb-4">
-        //                                 <Card.Body>
-        //                                     <h5 className="mb-3">Response Details:</h5>
-        //                                     <ul className="list-unstyled">
-        //                                         {Object.entries(responseCounts).map(([response, count]) => (
-        //                                             <li key={response} className="mb-2">
-        //                                                 <strong>{response}:</strong> {count} responses
-        //                                             </li>
-        //                                         ))}
-        //                                     </ul>
-        //                                 </Card.Body>
-        //                             </Card>
-
-        //                             <Card className="mb-4">
-        //                                 <Card.Body>
-        //                                     <h5 className="mb-3">Individual Responses:</h5>
-        //                                     <ul className="list-unstyled">
-        //                                         {responses.map((response, index) => (
-        //                                             <li key={index} className="mb-2">
-        //                                                 {response}
-        //                                             </li>
-        //                                         ))}
-        //                                     </ul>
-        //                                 </Card.Body>
-        //                             </Card>
-        //                         </>
-        //                     )}
-        //                 </>
-        //             )}
-        //             <div className="text-center mt-4">
-        //                 <Button variant="primary" onClick={() => navigate(-1)}>
-        //                     Back to Surveys
-        //                 </Button>
-        //             </div>
-        //         </Col>
-        //     </Row>
-        // </Container>
     );
 };
 

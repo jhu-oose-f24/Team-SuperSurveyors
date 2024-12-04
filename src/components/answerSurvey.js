@@ -39,6 +39,7 @@ const Survey = () => {
     const pqRef = useRef(new PriorityQueue((s1, s2) => (s1[0] > s2[0] ? 1 : s1[0] === s2[0] ? 0 : -1)));
     const { surveyId: paramSurveyId } = useParams();
     const [alreadyAnswered, setAlreadyAnswered] = useState(false);
+    const [lock, setLock] = useState(false);
 
     // [1] Add states for videos and audios
     const [images, setImages] = useState([]);

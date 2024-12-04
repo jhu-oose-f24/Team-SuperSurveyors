@@ -62,14 +62,7 @@ const EditUserProfileDialog = ({ show, onHide, userId, displayName, photoURL, on
                             onChange={(e) => onDisplayNameChange(e.target.value)}
                         />
                     </Form.Group>
-                    <Form.Group className="mb-3" controlId="editPhotoURL">
-                        <Form.Label>Photo URL</Form.Label>
-                        <Form.Control
-                            type="text"
-                            value={photoURL}
-                            onChange={(e) => onPhotoURLChange(e.target.value)}
-                        />
-                    </Form.Group>
+
                     {/* Image Upload Section */}
                     <Form.Group className="mb-3">
                         <Form.Label>Upload Profile Image</Form.Label>

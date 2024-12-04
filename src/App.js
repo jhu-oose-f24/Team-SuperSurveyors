@@ -21,7 +21,7 @@ const App = () => {
     <Router>
       {/* NavBar will not show on landing page */}
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/*" element={<LandingPage />} />
 
         {/* Auth Routes - with NavBar */}
         <Route element={<AuthLayout />}>
@@ -44,7 +44,7 @@ const App = () => {
         </Route>
 
         {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/*" replace />} />
       </Routes>
     </Router>
   );

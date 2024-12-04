@@ -139,7 +139,7 @@ const Survey = () => {
                 const surveyData = { id: docSnap.id, ...docSnap.data() };
                 setSurveyId(surveyData.id);
                 setSurveyTitle(surveyData.title);
-            
+
                 // [2] Populate images, videos, and audios from Firestore data
                 setQuestions(surveyData.questions.map((question, index) => ({ ...question, id: index.toString() })));
                 setImages(surveyData.images || []);
@@ -407,7 +407,7 @@ const Survey = () => {
                     variant="outlined"
                     startIcon={<RefreshIcon />}
                     onClick={() => {
-                        completeSurvey(getUserId, surveyId);
+                        completeSurvey(getUserId, surveyId, true);
                         fetchSurveys(true);
                     }}
                     fullWidth
@@ -464,8 +464,8 @@ const Survey = () => {
                     </Box>
                 )}
 
-                    {/* Video Gallery - New Section */}
-                    {videos.length > 0 && (
+                {/* Video Gallery - New Section */}
+                {videos.length > 0 && (
                     <Box sx={{ mt: 4 }}>
                         <Typography variant="h6" gutterBottom>
                             Video Gallery
@@ -540,7 +540,7 @@ const Survey = () => {
     );
 };
 
-async function completeSurvey(getUserId, surveyId) {
+async function completeSurvey(getUserId, surveyId, skip = false) {
     const userId = getUserId();
     await deleteDoc(doc(db, 'incompleteAnswers', `${surveyId}_${userId}`));
 
@@ -553,10 +553,11 @@ async function completeSurvey(getUserId, surveyId) {
         }
 
         answeredSurveys.push(surveyId);
+        const coins = skip ? userDoc.data().coins : userDoc.data().coins + 1;
 
         transaction.update(userRef, {
             answeredSurveys: answeredSurveys,
-            coins: userDoc.data().coins + 1
+            coins: coins
         });
     });
 }

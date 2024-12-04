@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc, updateDoc, increment } from 'firebase/firestore'; import { db } from '../firebase';
+import { doc, runTransaction, setDoc, deleteDoc, collection, query, where, getDocs, documentId, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { db } from '../firebase';
 import Question from './Question/Question';
 import { getRandomSurvey } from '../services/surveyService';
 import { getAuth } from 'firebase/auth';
@@ -37,6 +38,7 @@ const Survey = () => {
     const [failureTxt, setFailureTxt] = useState('');
     const pqRef = useRef(new PriorityQueue((s1, s2) => (s1[0] > s2[0] ? 1 : s1[0] === s2[0] ? 0 : -1)));
     const { surveyId: paramSurveyId } = useParams();
+    const [alreadyAnswered, setAlreadyAnswered] = useState(false);
 
     // [1] Add states for videos and audios
     const [images, setImages] = useState([]);
@@ -137,6 +139,19 @@ const Survey = () => {
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const surveyData = { id: docSnap.id, ...docSnap.data() };
+                const userID = getUserId();
+                const userRef = doc(db, 'users',userID)
+                const userSnap = await getDoc(userRef)
+
+                if (userSnap.exists()){
+                    const userData = userSnap.data();
+                    const answeredSurveys = userData.answeredSurveys || [];
+                    if (answeredSurveys.includes(surveyId)) {
+                        setAlreadyAnswered(true);
+                        setLoading(false);
+                        return;
+                    }
+                }
                 setSurveyId(surveyData.id);
                 setSurveyTitle(surveyData.title);
 
@@ -343,6 +358,16 @@ const Survey = () => {
         }
     }, []);
 
+    useEffect(() => {
+      if (alreadyAnswered) {
+        const timer = setTimeout(() => {
+          window.location.href = '/#/trending';
+        }, 3000);
+
+        return () => clearTimeout(timer);
+      }
+    }, [alreadyAnswered]);
+
     if (loading) {
         return (
             <Container sx={{
@@ -356,6 +381,15 @@ const Survey = () => {
         );
     }
 
+    if (alreadyAnswered) {
+        return (
+            <Container maxWidth="md" sx={{ py: 4 }}>
+                <Alert severity="info" sx={{ mb: 2 }}>
+                    You have already answered this survey and cannot answer it again. You will be redirected shortly.
+                </Alert>
+            </Container>
+        );
+    }
     if (submissionSuccess) {
         return (
             <Container maxWidth="sm" sx={{ mt: 8 }}>

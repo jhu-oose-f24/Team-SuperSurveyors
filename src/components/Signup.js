@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -31,6 +31,15 @@ const Signup = () => {
   const [error, setError] = useState('');
   const [showError, setShowError] = useState(false);
   const navigate = useNavigate();
+
+
+  useEffect(() => {
+    const auth = getAuth();
+    if (auth.currentUser) {
+      navigate('/home'); // Redirect authenticated users to /home
+    }
+  }
+  )
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -95,7 +104,7 @@ const Signup = () => {
           <Typography component="h1" variant="h4" gutterBottom>
             Create Account
           </Typography>
-          
+
           <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
             Join SuperSurveyors today
           </Typography>
@@ -180,7 +189,7 @@ const Signup = () => {
               fullWidth
               variant="contained"
               size="large"
-              sx={{ 
+              sx={{
                 mb: 3,
                 height: 50,
                 borderRadius: 2,
@@ -204,9 +213,9 @@ const Signup = () => {
           </Box>
 
           <Fade in={showError}>
-            <Alert 
-              severity="error" 
-              sx={{ 
+            <Alert
+              severity="error"
+              sx={{
                 mt: 3,
                 width: '100%'
               }}

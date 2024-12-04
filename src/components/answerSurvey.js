@@ -407,7 +407,6 @@ const Survey = () => {
             </Container>
         );
     }
-    console.log(pqRef.current.toArray());
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
             <Box sx={{ mb: 4 }}>

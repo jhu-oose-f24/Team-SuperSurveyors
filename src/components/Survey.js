@@ -106,6 +106,9 @@ const SurveyForm = () => {
     const [selectedTags, setSelectedTags] = useState([]);
     const [sharePublicly, setSharePublicly] = useState(true);
     const [loading, setLoading] = useState(false);
+    const [images, setImages] = useState([]); // ✅ State for images
+    const [videos, setVideos] = useState([]); // ✅ State for videos
+    const [audios, setAudios] = useState([]); // ✅ State for audios
     const navigate = useNavigate();
 
     // For toasts
@@ -114,9 +117,7 @@ const SurveyForm = () => {
     const [showQuestionFailure, setShowQuestionFailure] = useState(false);
     const [failureQuestionTxt, setFailureQuestionTxt] = useState('');
 
-    // Fetch tags from Firestore    
-    const [images, setImages] = useState([]); // 添加状态来存储图片 URL
-
+    
     useEffect(() => {
         const fetchTags = async () => {
             try {
@@ -131,10 +132,13 @@ const SurveyForm = () => {
         fetchTags();
     }, []);
 
-    //add image
-    const handleUpload = (url) => {
-        setImages([...images, url]);
+    // 🔄 Modified handleUpload to handle images, videos, and audios based on mediaType
+    const handleUpload = (url, mediaType) => {
+        if (mediaType === 'image') setImages([...images, url]);
+        else if (mediaType === 'video') setVideos([...videos, url]);
+        else if (mediaType === 'audio') setAudios([...audios, url]);
     };
+
 
 
     const handleTagSelection = (event) => {
@@ -187,7 +191,9 @@ const SurveyForm = () => {
             questions,
             tags: selectedTags,
             images: images,
-            sharePublicly: sharePublicly
+            sharePublicly: sharePublicly,
+            videos,
+            audios,
         };
 
         // Verify survey before sending to Firestore
@@ -351,8 +357,9 @@ const SurveyForm = () => {
                                 </List>
                             </Box>
                         )}
-                        <UploadWidget onUpload={handleUpload} />
 
+                        {/* UploadWidget now handles different media types */}
+                        <UploadWidget onUpload={(url, mediaType) => handleUpload(url, mediaType)} />
 
                         <Button
                             variant="outlined"

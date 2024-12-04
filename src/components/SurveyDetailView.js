@@ -34,8 +34,12 @@ const SurveyDetailView = () => {
     const fetchSurvey = async () => {
       try {
         const surveyDoc = await getDoc(doc(db, 'surveys', surveyId));
+        console.log("Survey data:", surveyDoc.data());  // Check structure here
+
         if (surveyDoc.exists()) {
-          setSurvey({ id: surveyDoc.id, ...surveyDoc.data() });
+          const surveyData = { id: surveyDoc.id, ...surveyDoc.data() };
+          console.log("Fetched survey data:", surveyData); // Debugging statement
+          setSurvey(surveyData);
         } else {
           setError('Survey not found');
         }
@@ -129,23 +133,38 @@ const SurveyDetailView = () => {
             borderColor: 'grey.200',
             borderRadius: 2
           }}
-
-
         >
-          {/* Image Gallery */}
-          {survey.images && survey.images.length > 0 && (
+          {/* Media Gallery */}
+          {(survey.images || survey.videos || survey.audios) && (
             <div>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                Image Gallery
+                Media Gallery
               </Typography>
+              
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                {survey.images.map((url, index) => (
+                {survey.images && survey.images.map((url, index) => (
                   <img
                     key={index}
                     src={url}
                     alt={`Uploaded ${index}`}
                     style={{ width: "300px", height: "auto", margin: "10px" }}
                   />
+                ))}
+                {survey.videos && survey.videos.map((url, index) => (
+                  <Box key={index} sx={{ width: "300px", height: "auto", margin: "10px" }}>
+                    <video controls style={{ width: "100%", height: "auto" }}>
+                      <source src={`${url}?timestamp=${new Date().getTime()}`} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </Box>
+                ))}
+                {survey.audios && survey.audios.map((url, index) => (
+                  <Box key={index} sx={{ width: "300px", height: "auto", margin: "10px" }}>
+                    <audio controls style={{ width: "100%" }}>
+                      <source src={url} type="audio/mpeg" />
+                      Your browser does not support the audio element.
+                    </audio>
+                  </Box>
                 ))}
               </Box>
             </div>

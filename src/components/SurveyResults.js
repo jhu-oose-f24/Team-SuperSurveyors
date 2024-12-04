@@ -114,7 +114,7 @@ const SurveyResults = () => {
                                     ))}
                                     
                                     {(question.type === 'radio' || question.type === 'checkbox') && (
-                                        <MultiChoiceAndSelect choices={question.options} answers={responses[index].responses} />
+                                        <MultiChoiceAndSelect type={question.type} choices={question.options} answers={responses[index].responses} />
                                     )}
                                     
                                 </CardContent>

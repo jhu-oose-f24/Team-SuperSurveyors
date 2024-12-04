@@ -17,7 +17,7 @@ import {
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const MultiChoiceAndSelect = ({ choices, answers }) => {
+const MultiChoiceAndSelect = ({ type, choices, answers }) => {
 
     // Count the answers
     const counts = choices.map(choice =>
@@ -25,14 +25,15 @@ const MultiChoiceAndSelect = ({ choices, answers }) => {
     );
 
     // Chart data
+    const barColor = type === 'radio' ? '#4BC0C0' : '#8F5C0C';
     const data = {
         labels: choices,
         datasets: [
             {
                 label: 'Responses',
                 data: counts,
-                backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: `${barColor}80`,
+                borderColor: `${barColor}FF`,
                 borderWidth: 1,
             },
         ],
@@ -60,7 +61,12 @@ const MultiChoiceAndSelect = ({ choices, answers }) => {
     };
 
     return (
-        <Card sx={{ maxWidth: 600, margin: '20px auto' }}>
+        <Card sx={{ maxWidth: 600, 
+                    margin: '20px auto',
+                    border: '1px solid',
+                    borderColor: 'rgba(0, 0, 0, 0.33)',
+                    boxShadow: 'none',}}
+        >
             <CardContent>
                 <Bar data={data} options={options} />
             </CardContent>

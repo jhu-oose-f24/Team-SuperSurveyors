@@ -6,6 +6,7 @@ export const UploadWidget = ({ onUpload }) => {
     const widgetRef = useRef();
     const [mediaUrl, setMediaUrl] = useState(null);
     const [mediaType, setMediaType] = useState(''); // Track the type of media uploaded (image, audio, or video)
+    const [isHovered, setIsHovered] = useState(false);
 
     useEffect(() => {
         cloudinaryRef.current = window.cloudinary;
@@ -41,12 +42,51 @@ export const UploadWidget = ({ onUpload }) => {
 
     return (
         <div>
-            <button onClick={() => widgetRef.current.open()}>
+            <button
+                onClick={() => widgetRef.current.open()}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                style={{
+                    backgroundColor: isHovered ? '#e0e0e0' : '#f9f9f9',
+                    color: '#171717',
+                    padding: '10px 20px',
+                    fontSize: '14px',
+                    border: '1px solid #848e97',
+                    borderRadius: '20px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    transition: 'all 0.3s ease',
+                }}
+            >
+
                 Upload Media
             </button>
             {mediaUrl && (
-                <div>
-                    <h3>Uploaded {mediaType.charAt(0).toUpperCase() + mediaType.slice(1)}:</h3>
+                <div style={{
+                    marginTop: '20px',
+                    textAlign: 'center',
+                    padding: '20px',
+                    border: '1px solid #ddd',
+                    borderRadius: '10px',
+                    backgroundColor: '#f9f9f9',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                }}>
+                    <p style={{
+                        fontSize: '18px',
+                        fontWeight: 'normal',
+                        color: '#04060c',
+                        marginBottom: '15px'
+                    }}>
+                        {mediaType === 'image'
+                            ? 'Image uploaded successfully!'
+                            : mediaType === 'video'
+                            ? 'Video uploaded successfully!'
+                            : mediaType === 'audio'
+                            ? 'Audio uploaded successfully!'
+                            : 'File uploaded successfully!'}
+                    </p>
+
                     {mediaType === 'image' ? (
                         <img src={mediaUrl} alt="Uploaded" style={{ width: "300px", height: "auto" }} />
                     ) : mediaType === 'video' ? (

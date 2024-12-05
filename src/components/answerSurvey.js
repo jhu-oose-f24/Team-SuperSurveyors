@@ -23,7 +23,6 @@ import SendIcon from '@mui/icons-material/Send';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { generateTagsForSurvey, updateUserTags } from './taggingService';
-
 import { Create, Share } from '@mui/icons-material';
 import CreateAndSharing from './createAndSharing';
 
@@ -45,6 +44,7 @@ const Survey = () => {
     const [images, setImages] = useState([]);
     const [videos, setVideos] = useState([]);
     const [audios, setAudios] = useState([]);
+    const j = useRef(false);
 
     const navigate = useNavigate();
 
@@ -83,6 +83,7 @@ const Survey = () => {
     };
 
     const fetchSurveyBasedOnTag = async () => {
+
         pqRef.current.clear();
 
         try {
@@ -110,7 +111,7 @@ const Survey = () => {
                 query(collection(db, 'surveys'));
 
             const allSurveysSnapshot = await getDocs(surveyInfo);
-
+            let count = 0;
             allSurveysSnapshot.forEach((child) => {
                 if (userAnsweredSurveys.has(child.id)) {
                     return;
@@ -128,6 +129,7 @@ const Survey = () => {
                 }
                 let score = commonTags;
                 pqRef.current.enqueue([score, { id: child.id, ...survey }]);
+                count++;
             });
             return pqRef.current;
         } catch (error) {
@@ -196,7 +198,6 @@ const Survey = () => {
                     surveyData = { id: docSnap.id, ...docSnap.data() };
                     setAnswers(incompleteSurvey.answers);
                 } else {
-                    console.error('Survey not found');
                     if (pq.isEmpty()) {
                         setAnswers({});
                         surveyData = await getRandomSurvey();
@@ -211,6 +212,7 @@ const Survey = () => {
                     surveyData = await getRandomSurvey();
                 } else {
                     setAnswers({});
+
                     surveyData = pq.dequeue()[1];
                 }
             }
@@ -350,6 +352,8 @@ const Survey = () => {
     };
 
     useEffect(() => {
+        if (j.current) return;
+        j.current = true;
         if (paramSurveyId) {
             fetchSurveyById(paramSurveyId);
         } else {
@@ -357,7 +361,8 @@ const Survey = () => {
                 fetchSurveys();
             });
         }
-    }, []);
+    }
+        , []);
 
     useEffect(() => {
       if (alreadyAnswered) {
@@ -392,7 +397,9 @@ const Survey = () => {
         );
     }
     if (submissionSuccess) {
+
         return (
+
             <Container maxWidth="sm" sx={{ mt: 8 }}>
                 <Paper
                     elevation={0}
@@ -434,7 +441,6 @@ const Survey = () => {
             </Container>
         );
     }
-
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
             <Box sx={{ mb: 4 }}>

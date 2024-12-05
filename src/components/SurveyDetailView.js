@@ -140,7 +140,7 @@ const SurveyDetailView = () => {
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
                 Media Gallery
               </Typography>
-              
+
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 {survey.images && survey.images.map((url, index) => (
                   <img

@@ -1,16 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
-import { updateUserProfile } from '../services/userService'; // Import the update function
-import { UploadWidget } from '../services/uploadService'; // Import the UploadWidget component
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+    TextField,
+    Box,
+    Typography,
+    IconButton,
+    FormControl,
+    FormLabel
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import { updateUserProfile } from '../services/userService';
+import { UploadWidget } from '../services/uploadService';
 
-const EditUserProfileDialog = ({ show, onHide, userId, displayName, photoURL, onDisplayNameChange, onPhotoURLChange, onSave }) => {
+const EditUserProfileDialog = ({
+    show,
+    onHide,
+    userId,
+    displayName,
+    photoURL,
+    onDisplayNameChange,
+    onPhotoURLChange,
+    onSave
+}) => {
     const [images, setImages] = useState([]);
 
     const handleSaveChanges = async () => {
         try {
-            // Use the service to update the profile
             const updatedUser = await updateUserProfile(userId, displayName, photoURL);
-            onSave(updatedUser.displayName, updatedUser.photoURL); // Pass updated values to parent component
+            onSave(updatedUser.displayName, updatedUser.photoURL);
         } catch (error) {
             console.error("Error updating user profile:", error);
         }
@@ -39,46 +60,93 @@ const EditUserProfileDialog = ({ show, onHide, userId, displayName, photoURL, on
     // Handle clicking outside to save changes
     const handleCloseAndSave = () => {
         handleSaveChanges();
-        onHide(); // Close the modal
+        onHide();
     };
 
     // Handle image upload
     const handleUpload = (url) => {
-        onPhotoURLChange(url); // Update photoURL with the uploaded image URL
+        onPhotoURLChange(url);
     };
 
     return (
-        <Modal show={show} onHide={handleCloseAndSave} centered>
-            <Modal.Header closeButton>
-                <Modal.Title>Edit User Profile</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                <Form>
-                    <Form.Group className="mb-3" controlId="editDisplayName">
-                        <Form.Label>Display Name</Form.Label>
-                        <Form.Control
-                            type="text"
+        <Dialog
+            open={show}
+            onClose={handleCloseAndSave}
+            maxWidth="sm"
+            fullWidth
+            PaperProps={{
+                sx: {
+                    borderRadius: 2,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                }
+            }}
+        >
+            <DialogTitle sx={{
+                pr: 2,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+            }}>
+                <Typography variant="h6">
+                    Edit User Profile
+                </Typography>
+                <IconButton
+                    aria-label="close"
+                    onClick={onHide}
+                    edge="end"
+                >
+                    <CloseIcon />
+                </IconButton>
+            </DialogTitle>
+
+            <DialogContent dividers>
+                <Box component="form" sx={{ mt: 2 }}>
+                    <FormControl fullWidth sx={{ mb: 3 }}>
+                        <FormLabel
+                            sx={{ mb: 1, fontSize: '0.875rem', color: 'text.primary' }}
+                        >
+                            Display Name
+                        </FormLabel>
+                        <TextField
                             value={displayName}
                             onChange={(e) => onDisplayNameChange(e.target.value)}
+                            fullWidth
+                            size="medium"
+                            variant="outlined"
+                            placeholder="Enter display name"
                         />
-                    </Form.Group>
+                    </FormControl>
 
-                    {/* Image Upload Section */}
-                    <Form.Group className="mb-3">
-                        <Form.Label>Upload Profile Image</Form.Label>
-                        <UploadWidget onUpload={handleUpload} />
-                    </Form.Group>
-                </Form>
-            </Modal.Body>
-            <Modal.Footer>
-                <Button variant="secondary" onClick={onHide}>
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                        <FormLabel
+                            sx={{ mb: 1, fontSize: '0.875rem', color: 'text.primary' }}
+                        >
+                            Upload Profile Image
+                        </FormLabel>
+                        <Box sx={{ mt: 1 }}>
+                            <UploadWidget onUpload={handleUpload} />
+                        </Box>
+                    </FormControl>
+                </Box>
+            </DialogContent>
+
+            <DialogActions sx={{ p: 2.5 }}>
+                <Button
+                    variant="outlined"
+                    onClick={onHide}
+                    sx={{ mr: 1 }}
+                >
                     Cancel
                 </Button>
-                <Button variant="primary" onClick={handleSaveChanges}>
+                <Button
+                    variant="contained"
+                    onClick={handleSaveChanges}
+                    color="primary"
+                >
                     Save Changes
                 </Button>
-            </Modal.Footer>
-        </Modal>
+            </DialogActions>
+        </Dialog>
     );
 };
 

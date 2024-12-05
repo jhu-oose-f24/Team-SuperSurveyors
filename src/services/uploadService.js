@@ -19,7 +19,7 @@ export const UploadWidget = ({ onUpload }) => {
                 const uploadedMediaUrl = result.info.secure_url;
                 const uploadedMediaType = result.info.resource_type; // 'image', 'video', or 'audio'
                 
-                onUpload(uploadedMediaUrl);
+                onUpload(uploadedMediaUrl,uploadMediaType);
                 setMediaUrl(uploadedMediaUrl);
                 setMediaType(uploadedMediaType);
 

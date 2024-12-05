@@ -1,85 +1,188 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
-import { updateUserProfile } from '../services/userService'; // Import the update function
-import { UploadWidget } from '../services/uploadService'; // Import the UploadWidget component
+import { 
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Box,
+  Typography,
+  IconButton,
+  Avatar,
+  Divider,
+  Stack,
+  CircularProgress,
+  Slide
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import CloseIcon from '@mui/icons-material/Close';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { updateUserProfile } from '../services/userService';
+import { UploadWidget } from '../services/uploadService';
 
-const EditUserProfileDialog = ({ show, onHide, userId, displayName, photoURL, onDisplayNameChange, onPhotoURLChange, onSave }) => {
-    const [images, setImages] = useState([]);
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    borderRadius: theme.shape.borderRadius * 2,
+    padding: theme.spacing(2),
+    maxWidth: 500
+  }
+}));
 
-    const handleSaveChanges = async () => {
-        try {
-            // Use the service to update the profile
-            const updatedUser = await updateUserProfile(userId, displayName, photoURL);
-            onSave(updatedUser.displayName, updatedUser.photoURL); // Pass updated values to parent component
-        } catch (error) {
-            console.error("Error updating user profile:", error);
-        }
-    };
+const StyledDialogTitle = styled(DialogTitle)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: theme.spacing(2),
+}));
 
-    // Handle Enter key press to save changes
-    useEffect(() => {
-        const handleKeyPress = (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                handleSaveChanges();
-            }
-        };
+const StyledButton = styled(Button)(({ theme }) => ({
+  borderRadius: theme.shape.borderRadius * 2,
+  padding: '8px 24px',
+  textTransform: 'none',
+  fontWeight: 500,
+}));
 
-        if (show) {
-            document.addEventListener('keydown', handleKeyPress);
-        } else {
-            document.removeEventListener('keydown', handleKeyPress);
-        }
+const EditUserProfileDialog = ({ 
+  show, 
+  onHide, 
+  userId, 
+  displayName, 
+  photoURL, 
+  onDisplayNameChange, 
+  onPhotoURLChange, 
+  onSave 
+}) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-        return () => {
-            document.removeEventListener('keydown', handleKeyPress);
-        };
-    }, [show, displayName, photoURL]);
+  const handleSaveChanges = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const updatedUser = await updateUserProfile(userId, displayName, photoURL);
+      onSave(updatedUser.displayName, updatedUser.photoURL);
+      onHide();
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      setError("Failed to update profile. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    // Handle clicking outside to save changes
-    const handleCloseAndSave = () => {
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.key === 'Enter' && !isLoading) {
+        event.preventDefault();
         handleSaveChanges();
-        onHide(); // Close the modal
+      }
     };
 
-    // Handle image upload
-    const handleUpload = (url) => {
-        onPhotoURLChange(url); // Update photoURL with the uploaded image URL
+    if (show) {
+      document.addEventListener('keydown', handleKeyPress);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
     };
+  }, [show, displayName, photoURL, isLoading]);
 
-    return (
-        <Modal show={show} onHide={handleCloseAndSave} centered>
-            <Modal.Header closeButton>
-                <Modal.Title>Edit User Profile</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                <Form>
-                    <Form.Group className="mb-3" controlId="editDisplayName">
-                        <Form.Label>Display Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            value={displayName}
-                            onChange={(e) => onDisplayNameChange(e.target.value)}
-                        />
-                    </Form.Group>
+  const handleUpload = (url) => {
+    onPhotoURLChange(url);
+  };
 
-                    {/* Image Upload Section */}
-                    <Form.Group className="mb-3">
-                        <Form.Label>Upload Profile Image</Form.Label>
-                        <UploadWidget onUpload={handleUpload} />
-                    </Form.Group>
-                </Form>
-            </Modal.Body>
-            <Modal.Footer>
-                <Button variant="secondary" onClick={onHide}>
-                    Cancel
-                </Button>
-                <Button variant="primary" onClick={handleSaveChanges}>
-                    Save Changes
-                </Button>
-            </Modal.Footer>
-        </Modal>
-    );
+  return (
+    <StyledDialog
+      open={show}
+      onClose={onHide}
+      maxWidth="sm"
+      fullWidth
+      TransitionComponent={Slide}
+      TransitionProps={{ direction: 'up' }}
+    >
+      <StyledDialogTitle>
+        <Typography variant="h6" component="div">
+          Edit Profile
+        </Typography>
+        <IconButton
+          edge="end"
+          color="inherit"
+          onClick={onHide}
+          aria-label="close"
+          size="small"
+        >
+          <CloseIcon />
+        </IconButton>
+      </StyledDialogTitle>
+
+      <DialogContent sx={{ pt: 2 }}>
+        <Stack spacing={3}>
+          {/* Profile Preview */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+            <Avatar
+              src={photoURL}
+              alt={displayName}
+              sx={{
+                width: 100,
+                height: 100,
+                border: '4px solid #fff',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}
+            >
+              {!photoURL && <AccountCircleIcon sx={{ width: 60, height: 60 }} />}
+            </Avatar>
+          </Box>
+
+          {/* Display Name Input */}
+          <TextField
+            fullWidth
+            label="Display Name"
+            variant="outlined"
+            value={displayName}
+            onChange={(e) => onDisplayNameChange(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+
+          <Divider sx={{ my: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Profile Photo
+            </Typography>
+          </Divider>
+
+          {/* Upload Widget */}
+          <Box sx={{ width: '100%' }}>
+            <UploadWidget onUpload={handleUpload} />
+          </Box>
+
+          {/* Error Message */}
+          {error && (
+            <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+              {error}
+            </Typography>
+          )}
+        </Stack>
+      </DialogContent>
+
+      <DialogActions sx={{ p: 3, pt: 2 }}>
+        <StyledButton
+          variant="outlined"
+          onClick={onHide}
+          disabled={isLoading}
+        >
+          Cancel
+        </StyledButton>
+        <StyledButton
+          variant="contained"
+          onClick={handleSaveChanges}
+          disabled={isLoading}
+          startIcon={isLoading && <CircularProgress size={20} />}
+        >
+          {isLoading ? 'Saving...' : 'Save Changes'}
+        </StyledButton>
+      </DialogActions>
+    </StyledDialog>
+  );
 };
 
 export default EditUserProfileDialog;

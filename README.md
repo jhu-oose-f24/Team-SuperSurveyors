@@ -40,3 +40,8 @@ Our app is a survey platform where people will be able to create their own serve
 * Trending Page implemented. It shows the 10 most popular surveys being answered, and allows the user to see the results for these surveys. 
 * Coin currency system implemented. A user's coin balance is shown in the NavBar. The balance will increment from answering other people's surveys and decrement from creating surveys. We hope this will users an incentive to be active with other users.
 * The Answer Surveys page had some issues last iteration like a user being able to reanswer surveys and glitches with multiple-select questions.
+
+## Iteration 5 Features
+* Survey Results Visualization has been improved. Cleaned up the UI and added graphs for the multiple choice and multiselect questions.
+* Audio and Video input
+* Navbar UI has been improved

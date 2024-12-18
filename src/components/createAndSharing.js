@@ -30,7 +30,7 @@ const CreateAndSharing = ({ surveyId }) => {
     );
 };
 export function shareSurvey(surveyId) {
-    const surveyLink = `${window.location.origin}/#/answer/${surveyId}`;
+    const surveyLink = `${window.location.origin}${window.location.pathname}#/answer/${surveyId}`;
 
     if (navigator.share) {
         // Use the Web Share API if available
